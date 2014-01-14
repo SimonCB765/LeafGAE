@@ -1,0 +1,3 @@
+*.pyc
+# don't include Flask and depedencies
+server/lib/*

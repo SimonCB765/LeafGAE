@@ -1,0 +1,46 @@
+<html>
+	<head>
+		<title>Leaf Protein Culling Server</title>
+		<link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/main.css') }}">
+	</head>
+	<body>
+		<br>
+		<div id="navigation" align="center">
+			<b><a href="{{ url_for('home') }}">Home</a></b>
+			<hr>
+			<b><a href="{{ url_for('culling') }}">Culling</a></b>
+			<hr>
+			<b><a href="{{ url_for('downloads') }}">Pre-Culled Lists</a></b>
+			<hr>
+			<b><a href="{{ url_for('contacts') }}">Contact Information</a></b>
+		</div>
+		<div id="content">
+			<p align="center">
+				<br>This server provides two methods for obtaining culled PDB subsets.<br>
+				<ol>
+					<li>
+						Subsets of the PDB can be <b><a href="{{ url_for('culling') }}">culled</a></b> by pairwise sequence identity and structure quality. 
+						The subsets can be defined by the user uploading a set of PDB chains/entries, or by the user selecting to cull the proteome of a given 
+						organism.
+					</li>
+					<li>
+						Alternatively, pre-computed sets of non-redundant PDB chains can be <b><a href="{{ url_for('downloads') }}">downloaded</a></b>.
+					</li>
+				</ol>
+			</p>
+			<p align="center">
+				<br>For user that wish to cull arbitrary FASTA files, the source code for the Leaf algorithm can be <b><a href="https://github.com/SimonCB765/Leaf">downloaded</a></b>.<br>
+				
+				<br>Contact information for the website and authors of the paper can be found <b><a href="{{ url_for('contacts') }}">here</a></b>.<br>
+				
+				<br>Information about the extraction of the PDB data stored by the server can be found <b><a href="{{ url_for('help') }}#DataCollection">here</a></b>.<br>
+				
+				<br>Further information about the algorithm can be found in the <b><a href="http://www.plosone.org/article/info%3Adoi%2F10.1371%2Fjournal.pone.0055484">paper</a></b> describing it.<br>
+			</p>
+			<p align="center"><br>Manchester Institute of Biotechnology<br>131 Princess Street<br>Manchester<br>M1 7DN</p>
+		</div>
+		<div id="footer">
+			<p>Last updated <!-- #BeginDate format:Am1 -->January 12, 2014<!-- #EndDate -->.</p>
+		</div>
+	</body>
+</html>

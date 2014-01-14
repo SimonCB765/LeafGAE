@@ -1,0 +1,26 @@
+<html>
+	<head>
+		<title>Leaf Protein Culling Server</title>
+		<link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/main.css') }}">
+	</head>
+	<body>
+		<br>
+		<div id="navigation" align="center">
+			<b><a href="{{ url_for('home') }}">Home</a></b>
+			<hr>
+			<b><a href="{{ url_for('culling') }}">Culling</a></b>
+			<hr>
+			<b><a href="{{ url_for('downloads') }}">Pre-Culled Lists</a></b>
+			<hr>
+			<b><a href="{{ url_for('contacts') }}">Contact Information</a></b>
+		</div>
+		<div id="content">
+			<p>Simon Bull: simon.bull@postgrad.manchester.ac.uk</p>
+			<p>Mark Muldoon: M.Muldoon@manchester.ac.uk</p>
+			<p>Andrew Doig: andrew.doig@manchester.ac.uk</p>
+		</div>
+		<div id="footer">
+			<p>Last updated <!-- #BeginDate format:Am1 -->January 12, 2014<!-- #EndDate -->.</p>
+		</div>
+	</body>
+</html>
