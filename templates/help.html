@@ -21,38 +21,24 @@
 		<p>
 			<ul>
 				<li>
-					Only one of pasting chains/entries to cull, selecting an organism to cull from, entering an organism 
-					to cull from or uploading a file of chains/entries to cull is permitted.
-				</li>
-				<li>
-					The organism entry is case insensitive, but the name entered must match exactly that used by the PDB.
-				</li>
-				<li>Any file uploaded should be in plain text format. For example, do not create and submit a Microsoft Word format file.</li>
-				<li>The expected format for the pasted/uploaded PDB chains/entries to cull is to have one chain/entry on a line with no additional whitesapce on the line.</li>
-				<li>
-					When culling the PDB by chains, it is acceptable to supply entries. The entries will just be converted into all their constituent chains 
-					for the culling. For example, if culling by chain and you supply the entry 4FCV, then this will be converted to 4FCVA, 4FCVB and 4FCVC.
-				</li>
-				<li>
 					The percentage sequence identity submitted will be taken to be the maximum sequence identity permissible. 
 					For example, if 20% sequence identity is chosen, there will be no chains/entries with greater than 20% 
-					sequence identity in the non-redundant set. The percentage must be greater than or equal to 5, and less than 100.
+					sequence identity in the non-redundant set.
 				</li>
 				<li>
 					The minimum and maximum resolution are used to ensure that all chains/entries in the non-redundant dataset 
-					have a resolution within the user specified range. The permissible range of values for the minimum and maximum resolution is 0-100. 
-					The minimum resolution can not be greater than the maximum.
+					have a resolution within the user specified range.
 				</li>
 				<li>
 					The maximum R value is used to ensure that all chains/entries in the non-redundant dataset have an R value 
-					no greater than the maximum specified. The permissible range of values for the R value is 0-1.
+					no greater than the maximum specified.
 				</li>
 				<li>
-					If skip non-X-ray entries is chosen, then only those chains/entries that have X-ray diffraction recorded  
+					If non-X-ray entries are not included, then only those chains/entries that have X-ray diffraction recorded  
 					as their experimental type will be present in the non-redundant dataset.
 				</li>
 				<li>
-					If skip alpha carbon only entries is chosen, then chains/entries that only have alpha carbon atoms will 
+					If alpha carbon only entries are not included, then chains/entries that only have alpha carbon atoms will 
 					not be present in the non-redundant dataset.
 				</li>
 				<li>
@@ -69,54 +55,7 @@
 				</li>
 				<li>
 					The minimum and maximum lengths are optional, and are used to ensure that no sequences have fewer amino 
-					acids than the minimum length provided or more amino acids than the maximum length provided. If both a 
-					minimum and a maximum are specified, then the maximum can not be less than the minimum.
-				</li>
-			</ul>
-		</p>
-		<hr>
-		<a name="WholePDBCulling"></a>
-		<h2>Whole PDB Culling</h2>
-		<p>
-			<ul>
-				<li>
-					The percentage sequence identity submitted will be taken to be the maximum sequence identity permissible. 
-					For example, if 20% sequence identity is chosen, there will be no chains/entries with greater than 20% 
-					sequence identity in the non-redundant set. The percentage must be greater than or equal to 5, and less than 100.
-				</li>
-				<li>
-					The minimum and maximum resolution are used to ensure that all chains/entries in the non-redundant dataset 
-					have a resolution within the user specified range. The permissible range of values for the minimum and maximum resolution is 0-100. 
-					The minimum resolution can not be greater than the maximum.
-				</li>
-				<li>
-					The maximum R value is used to ensure that all chains/entries in the non-redundant dataset have an R value 
-					no greater than the maximum specified. The permissible range of values for the R value is 0-1.
-				</li>
-				<li>
-					If skip non-X-ray entries is chosen, then only those chains/entries that have X-ray diffraction recorded  
-					as their experimental type will be present in the non-redundant dataset.
-				</li>
-				<li>
-					If skip alpha carbon only entries is chosen, then chains/entries that only have alpha carbon atoms will 
-					not be present in the non-redundant dataset.
-				</li>
-				<li>
-					The two methods of culling the PDB are 'by chain' and 'by entry'. Please see 
-					<a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC1160163/">PISCES</a> for a description of the 
-					differences between the two methods.
-				</li>
-				<li>
-					The within entry percentage sequence identity is used when culling chains within entries. A value of 20% 
-					will ensure that no two chains from the same entry with greater than 20% sequence identity are kept in 
-					the non-redundant dataset. Within entry culling is performed only if 'by entry' culling is selected. 
-					Please see <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC1160163/">PISCES</a> for a description 
-					of the within entry culling. 
-				</li>
-				<li>
-					The minimum and maximum lengths are optional, and are used to ensure that no sequences have fewer amino 
-					acids than the minimum length provided or more amino acids than the maximum length provided. If both a 
-					minimum and a maximum are specified, then the maximum can not be less than the minimum.
+					acids than the minimum length provided or more amino acids than the maximum length provided.
 				</li>
 			</ul>
 		</p>
@@ -127,97 +66,51 @@
 			See <b><a href="{{ url_for('help') }}#DataCollection">here</a></b> for more information about the extraction of the data from the PDB, experimental abbreviations, etc.<br>
 			<ul>
 				<li>
-					PDB Results
+					User Input<!-- (not present if culling from the whole PDB was performed)-->
+					<ul><li>A list of the chains/entries submitted by the user, with one chain/entry on each line.</li></ul>
+				</li>
+			</ul>
+			<ul>
+				<li>
+					Input Sequences Removed
+					<ul><li>A list of the redundant chains/entries, with one chain/entry on each line.</li></ul>
+				</li>
+			</ul>
+			<ul>
+				<li>
+					Non-redundant Sequence Statistics
 					<ul>
+						<li>A table of information about the non-redundant chains/entries submitted by the user.</li>
+						<li>Each line contains six values separated by tabs ('\t').</li>
 						<li>
-							User Input<!-- (not present if culling from the whole PDB was performed)-->
-							<ul>
-								<li>A list of the chains/entries submitted by the user, with one chain/entry on each line.</li>
-							</ul>
-						</li>
-					</ul>
-					<ul>
-						<li>
-							Input Sequences Removed
-							<ul>
-								<li>A list of the redundant chains/entries from <!--either the whole PDB or -->the user input, with one chain/entry on each line.</li>
-							</ul>
-						</li>
-					</ul>
-					<ul>
-						<li>
-							Non-redundant Sequence Statistics
-							<ul>
-								<li>A table of information about the non-redundant chains/entries submitted by the user.</li>
-								<li>Each line contains six values separated by tabs ('\t').</li>
-								<li>
-									The values (from left to right) are as follows: the name of the chain/entry, the length (in amino acids) of the chain/entry (the length of an entry is the length of a random chain in the entry), 
-									the abbreviation for the experimental method used to determine the structure, the resolution of the structure, the R-value and the free R-value.
-								</li>
-							</ul>
-						</li>
-					</ul>
-					<ul>
-						<li>
-							Non-redundant Sequences
-							<ul>
-								<li>A FASTA format file of the chains in the non-redundant dataset.</li>
-								<li>If cull by entry was selected, then this file contains all the chains in each non-redundant entry that were not removed by intra-entry culling of chains.</li>
-								<li>Each chain is represented by two consecutive lines in the file.</li>
-								<li>The first line is an identifier line for the chain. The second line contains the sequence of the chain.</li>
-								<li>
-									The identifier line begins with a '>', and the values (from left to right) are: Chain ID, 
-									Chain Length, Experimental Method Abbreviation, Resolution, R-value, Free R-value, Alpha Carbon Only, Chain Description, &#60DBCode DBIdentifier&#62 and [OrganismName].
-								</li>
-								<li>Tabs separate the values on the identifier line.</li>
-								<li>There may be additional whitespace in the Chain Description.</li>
-								<li>Alpha Carbon Only is 'no' if the chain structure is not purely composed of alpha carbon atoms.</li>
-								<li>
-									The DBCode is the code used by the PDB to record an external database where information about the chain can be found (e.g. UNP for UniProt), and the 
-									DBIdentifier is the identifier used to locate the chain in the external database (e.g. VAV_MOUSE).
-								</li>
-								<li>
-									The OrganismName is case insensitive, and appears exactly as it was recorded in the PDB (e.g. Mus musculus and MUS MUSCULUS may both appear). It always
-									consists of the genus and species of the organism separated by a space.
-								</li>
-							</ul>
+							The values (from left to right) are as follows: the name of the chain/entry, the length (in amino acids) of the chain/entry (the length of an entry is the length of a random chain in the entry), 
+							the abbreviation for the experimental method used to determine the structure, the resolution of the structure, the R-value and the free R-value.
 						</li>
 					</ul>
 				</li>
+			</ul>
+			<ul>
 				<li>
-					User Culling Results
+					Non-redundant Sequences
 					<ul>
+						<li>A FASTA format file of the chains in the non-redundant dataset.</li>
+						<li>If cull by entry was selected, then this file contains all the chains in each non-redundant entry that were not removed by intra-entry culling of chains.</li>
+						<li>Each chain is represented by two consecutive lines in the file.</li>
+						<li>The first line is an identifier line for the chain. The second line contains the sequence of the chain.</li>
 						<li>
-							User Input
-							<ul>
-								<li>The sequences uploaded by the user, in the expected FASTA format</li>
-							</ul>
+							The identifier line begins with a '>', and the values (from left to right) are: Chain ID, 
+							Chain Length, Experimental Method Abbreviation, Resolution, R-value, Free R-value, Alpha Carbon Only, Chain Description, &#60DBCode DBIdentifier&#62 and [OrganismName].
 						</li>
-					</ul>
-					<ul>
+						<li>Tabs separate the values on the identifier line.</li>
+						<li>There may be additional whitespace in the Chain Description.</li>
+						<li>Alpha Carbon Only is 'no' if the chain structure is not purely composed of alpha carbon atoms.</li>
 						<li>
-							Input Sequences Removed
-							<ul>
-								<li>A list of the input proteins that are redundant.</li>
-							</ul>
+							The DBCode is the code used by the PDB to record an external database where information about the chain can be found (e.g. UNP for UniProt), and the 
+							DBIdentifier is the identifier used to locate the chain in the external database (e.g. VAV_MOUSE).
 						</li>
-					</ul>
-					<ul>
 						<li>
-							Non-redundant Sequence Statistics
-							<ul>
-								<li>A table of information about the non-redundant input proteins.</li>
-								<li>The two columns are separated by tabs ('\t').</li>
-								<li>The first column contains protein identifiers, and the second contains the length of the proteins.</li>
-							</ul>
-						</li>
-					</ul>
-					<ul>
-						<li>
-							Non-redundant Sequences
-							<ul>
-								<li>A FASTA fromat file of the non-redundant input proteins.</li>
-							</ul>
+							The OrganismName is case insensitive, and appears exactly as it was recorded in the PDB (e.g. Mus musculus and MUS MUSCULUS may both appear). It always
+							consists of the genus and species of the organism separated by a space.
 						</li>
 					</ul>
 				</li>
@@ -507,7 +400,7 @@
 	</div>
 
 	<div id="footer">
-		<p>Last updated <!-- #BeginDate format:Am1 -->January 12, 2014<!-- #EndDate -->.</p>
+		<p>Last updated <!-- #BeginDate format:Am1 -->January 16, 2014<!-- #EndDate -->.</p>
 	</div>
 
 </body>
