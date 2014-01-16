@@ -17,7 +17,7 @@ function validateForm(form)
     }
     if (invalidSeqIden || invalidRes || invalidRVal || invalidLength || invalidIntraEntrySeqIden)
     {
-        alert("There are warnings on the page. Some parameters have invalid values. Please correct the highlighted fields before submitting.");
+        alert("WARNING Some parameters have invalid values. The fields with invalid values are highlighted in orange. Please correct the highlighted fields before submitting.");
         return false;
     }
     return true;
