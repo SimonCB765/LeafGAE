@@ -1,5 +1,32 @@
 function validateForm(form)
 {
+    var invalidChains = false;
+    var textInChainsBox = (form.pastedInfo.value.trim()).length != 0;
+    var textInSpeciesBox = (form.speciesTextBox.value.trim()).length != 0;
+    if (form.wholePDBNo.checked && textInChainsBox && textInSpeciesBox)
+    {
+        // Invalid if the whole PDB is not being culled and text is present in both chain/entry and organism inputs.
+        var invalidChains = true;
+        document.getElementById('bothInputsWarning').style.background = '#F7730E';
+        document.getElementById('bothInputsWarning').style.display = 'inherit';
+    }
+    else
+    {
+        document.getElementById('bothInputsWarning').style.background = 'inherit';
+        document.getElementById('bothInputsWarning').style.display = 'none';
+    }
+    if (form.wholePDBNo.checked && !(textInChainsBox || textInSpeciesBox))
+    {
+        // Invalid if the whole PDB is not being culled and text is present in neither the chain/entry not organism inputs.
+        var invalidChains = true;
+        document.getElementById('noInputsWarning').style.background = '#F7730E';
+        document.getElementById('noInputsWarning').style.display = 'inherit';
+    }
+    else
+    {
+        document.getElementById('noInputsWarning').style.background = 'inherit';
+        document.getElementById('noInputsWarning').style.display = 'none';
+    }
     var invalidSeqIden = invalidNumber(form.pc, document.getElementById('SeqIdenInfo'), 5, 100);
     var invalidRes = invalidResolutionCheck(form.minRes, document.getElementById('minResInfo'), form.maxRes, document.getElementById('maxResInfo'), 0, 100)
     var invalidRVal = invalidNumber(form.maxRVal, document.getElementById('RValInfo'), 0, 1);
@@ -15,9 +42,14 @@ function validateForm(form)
     {
         document.getElementById('intraEntryInfo').style.background = 'inherit';
     }
-    if (invalidSeqIden || invalidRes || invalidRVal || invalidLength || invalidIntraEntrySeqIden)
+    if (invalidChains || invalidSeqIden || invalidRes || invalidRVal || invalidLength || invalidIntraEntrySeqIden)
     {
         alert("WARNING Some parameters have invalid values. The fields with invalid values are highlighted in orange. Please correct the highlighted fields before submitting.");
+        if (invalidChains)
+        {
+            // If the chains/organism input is invalid, then scroll to the top.
+            window.scrollTo(0,0);
+        }
         return false;
     }
     return true;

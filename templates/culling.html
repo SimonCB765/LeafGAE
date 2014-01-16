@@ -19,79 +19,64 @@
 		<div id="content" style="text-align: center;">
 			{% with errorMessage = get_flashed_messages() %}
 				<div id="error">
-					<p align="center"><b>There were errors in your input. The incorrect fields are highlighted in red.<b></p>
-					<ul align="center">
-						{% for error in errorMessage %}
-							<li align="center">{{ error }}</li>
-						{% endfor %}
-					</ul>
+					{% for error in errorMessage %}
+						<p align="center"><b>{{ error }}<b></p>
+					{% endfor %}
 				</div>
 			{% endwith %}
 
 			<form id="cullform" enctype="multipart/form-data" action="{{ url_for('culling') }}" method="post" onsubmit="return validateForm(this)">
 				<h2>Select Chains and Entries to Cull</h2>
-				<div id="wholeInfoBox" style="float: right; width: 25%; text-align: center; font-size: 17px; border: #FFFFFF 1px solid; background-color: #FFFFFF; visibility: hidden;">
-					Selecting to cull the whole PDB disables culling by chains/entries and by organism.
+				<div id="wholeInfoBox" style="float: left; width: 25%; text-align: center; font-size: 17px; border:3px solid #F7730E;">
+					Culling the whole PDB disables culling by chains/entries or by organism.
 				</div>
-				<div style="float: right; width: 50%; text-align: center; font-size: 17px;">
+				<div style="float: left; width: 50%; text-align: center; font-size: 17px;">
 					<br>
 					<b>Cull the whole PDB?</b>
 					{% if wholePDB %}
-						<input type="radio" name="wholePDB" value="yes"
+						<input type="radio" id="wholePDBYes" name="wholePDB" value="yes"
 							   onclick="disableElement(document.getElementById('pastedInfo'));
-										disableElement(document.getElementById('speciesTextBox'));
-							            showElement(document.getElementById('wholeInfoBox'));"
+										disableElement(document.getElementById('speciesTextBox'));"
 							   checked="checked"/>Yes
-						<input type="radio" name="wholePDB" value="no"
+						<input type="radio" id="wholePDBNo" name="wholePDB" value="no"
 							   onclick="enableElement(document.getElementById('pastedInfo'));
-										enableElement(document.getElementById('speciesTextBox'));
-										hideElement(document.getElementById('wholeInfoBox'));"/>No
+										enableElement(document.getElementById('speciesTextBox'));"/>No
 					{% else %}
-						<input type="radio" name="wholePDB" value="yes"
+						<input type="radio" id="wholePDBYes" name="wholePDB" value="yes"
 							   onclick="disableElement(document.getElementById('pastedInfo'));
-										disableElement(document.getElementById('speciesTextBox'));
-										showElement(document.getElementById('wholeInfoBox'));"/>Yes
-						<input type="radio" name="wholePDB" value="no"
+										disableElement(document.getElementById('speciesTextBox'));"/>Yes
+						<input type="radio" id="wholePDBNo" name="wholePDB" value="no"
 							   onclick="enableElement(document.getElementById('pastedInfo'));
-										enableElement(document.getElementById('speciesTextBox'));
-										hideElement(document.getElementById('wholeInfoBox'));" checked="checked"/>No
+										enableElement(document.getElementById('speciesTextBox'));"
+							   checked="checked"/>No
 					{% endif %}
 				</div>
 				<div style="clear: both;">
-					<b>Please paste or type your Chains/Entries in plain text format in the box below:</b>
-				</div>
-				<br>
-				<div id="pastedInfoBox" style="float: right; width: 25%; text-align: center; font-size: 17px; border: #FFFFFF 1px solid; background-color: #FFFFFF; visibility: hidden;">
-					Information about what to enter in this text box.
-				</div>
-				<div style="float: right; width: 50%; text-align: center; font-size: 17px;">
-					<textarea id="pastedInfo" name="pastedInfo" rows="10" cols="50" maxlength="200000"
-							  onfocus="showElement(document.getElementById('pastedInfoBox'))"
-							  onblur="hideElement(document.getElementById('pastedInfoBox'))"
-							  style="border:3px solid #F7730E;">{{ pastedChains }}</textarea>
-				</div>
-
-				<div style="clear: both;">
-					<br>
-					<b>Or enter an organism of your choosing:</b>
 					<br>
 				</div>
-				<div id="organismInfoBox" style="float: right; width: 25%; text-align: center; font-size: 17px; border: #FFFFFF 1px solid; background-color: #FFFFFF; visibility: hidden;">
-					Enter the name of an organism (case insensitive) as it appears in the PDB.
+				<div id="chainInfoBox" style="float: left; width: 25%; text-align: center; font-size: 17px; border:3px solid #F7730E;">
+					Either chains/entries can be culled or an organism name can be entered, but not both.
+					<br><br>
+					The expected format for the chains/entries is to have one ID on each line, with no other text on the line.
+					<br><br>
+					The organism name is case insensitive, and should be entered as it appears in the PDB (e.g. homo sapiens).
 				</div>
-				<div style="float: right; width: 50%; text-align: center; font-size: 17px;">
-					<br>
+				<div style="float: left; width: 50%; text-align: center;">
+					<b>Enter the chains/entries you wish to cull in the box below:</b>
+					<textarea id="pastedInfo" name="pastedInfo" rows="10" cols="50" maxlength="200000" style="border:3px solid #F7730E;">{{ pastedChains }}</textarea>
+					<b>Alternatively, enter an organism of your choosing:</b>
 					{% if speciesTextBox %}
-						<input id="speciesTextBox" type="text" name="speciesTextBox" value={{ speciesTextBox }} size="50"
-							   onfocus="showElement(document.getElementById('organismInfoBox'))"
-							   onblur="hideElement(document.getElementById('organismInfoBox'))"
-							   style="border:3px solid #F7730E;"/>
+						<input id="speciesTextBox" type="text" name="speciesTextBox" value={{ speciesTextBox }} size="50" style="border:3px solid #F7730E;"/>
 					{% else %}
-						<input id="speciesTextBox" type="text" name="speciesTextBox" value="" size="50"
-							   onfocus="showElement(document.getElementById('organismInfoBox'))"
-							   onblur="hideElement(document.getElementById('organismInfoBox'))"
-							   style="border:3px solid #F7730E;"/>
+						<input id="speciesTextBox" type="text" name="speciesTextBox" value="" size="50" style="border:3px solid #F7730E;"/>
 					{% endif %}
+				</div>
+				<br><br><br>
+				<div id="bothInputsWarning" style="float: right; width: 24%; border: #FFFFFF 1px solid; font-size: 17px; display: none;">
+					Both chains/entries and an organism name have been entered. Only one or the other is permitted.
+				</div>
+				<div id="noInputsWarning" style="float: right; width: 24%; border: #FFFFFF 1px solid; font-size: 17px; display: none;">
+					Neither chains/entries nor an organism name have been entered. One must be entered if not culling from the whole PDB.
 				</div>
 				<div style="clear: both;">
 					<br><hr>
@@ -171,7 +156,7 @@
 						</td>
 					</tr>
 					<tr>
-						<td><b>Skip entries with only alpha carbons?</b></td>
+						<td><b>Include entries with only alpha carbons?</b></td>
 						<td>
 							{% if includeAlphaCarbon %}
 								<input type="radio" name="includeAlphaCarbon" value="no"/>No
@@ -239,6 +224,6 @@
 			</form>
 		</div>
 
-		<div id="footer"><p>Last updated <!-- #BeginDate format:Am1 -->January 14, 2014<!-- #EndDate -->.</p></div>
+		<div id="footer"><p>Last updated <!-- #BeginDate format:Am1 -->January 16, 2014<!-- #EndDate -->.</p></div>
 	</body>
 </html>
