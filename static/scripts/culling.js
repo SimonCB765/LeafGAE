@@ -20,21 +20,12 @@ function validateForm(form)
     var invalidLength = invalidLengthCheck(form.minLen, form.enforceMinLengthYes.checked, document.getElementById('minLengthInfo'),
                                            form.maxLen, form.enforceMaxLengthYes.checked, document.getElementById('maxLengthInfo'),
                                            0);
-    var invalidIntraEntrySeqIden = false;
-    if (form.cullByEntryYes.checked && form.intraEntryCullYes.checked)
-    {
-        var invalidIntraEntrySeqIden = invalidNumber(form.intraEntryPC, document.getElementById('intraEntryInfo'), 5, 100);
-    }
-    else
-    {
-        document.getElementById('intraEntryInfo').style.background = 'inherit';
-    }
-    if (invalidChains || invalidSeqIden || invalidRes || invalidRVal || invalidLength || invalidIntraEntrySeqIden)
+    if (invalidChains || invalidSeqIden || invalidRes || invalidRVal || invalidLength)
     {
         alert("WARNING Some parameters have invalid values. The fields with invalid values are highlighted in orange. Please correct the highlighted fields before submitting.");
         if (invalidChains)
         {
-            // If the chains/organism input is invalid, then scroll to the top.
+            // If the chains input is invalid, then scroll to the top.
             window.scrollTo(0,0);
         }
         return false;

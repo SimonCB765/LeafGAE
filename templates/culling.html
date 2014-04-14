@@ -131,55 +131,6 @@
 					</tr>
 				</table>
 				<br><hr>
-				<h2 align="center">Cull By Entry Parameters</h2>
-				<table align='center' border="0" cellpadding="0">
-					<tr>
-						<td><b>Cull by entry?</b></td>
-						<td colspan="2">
-							{% if cullByEntry %}
-								<input type="radio" id="cullByEntryNo" name="cullByEntry" value="chain"
-									   onclick="disableElement(document.getElementById('intraEntryPC'));"/>No
-								<input type="radio" id="cullByEntryYes" name="cullByEntry" value="entry"
-									   onclick="if (document.getElementById('intraEntryCullYes').checked) {enableElement(document.getElementById('intraEntryPC'));}"
-									   checked="checked"/>Yes
-							{% else %}
-								<input type="radio" id="cullByEntryNo" name="cullMethod" value="chain"
-									   onclick="disableElement(document.getElementById('intraEntryPC'));"
-									   checked="checked"/>No
-								<input type="radio" id="cullByEntryYes" name="cullMethod" value="entry"
-									   onclick="if (document.getElementById('intraEntryCullYes').checked) {enableElement(document.getElementById('intraEntryPC'));}"
-									   />Yes
-							{% endif %}
-						</td>
-					</tr>
-					<tr>
-						<td><b>Cull chains within entries?</b></td>
-						<td>
-							{% if intraEntryCull %}
-								<input type="radio" id="intraEntryCullNo" name="intraEntryCull" value="no"
-									   onclick="disableElement(document.getElementById('intraEntryPC'));"/>No
-								<input type="radio" id="intraEntryCullYes" name="intraEntryCull" value="yes"
-									   onclick="if (document.getElementById('cullByEntryYes').checked) {enableElement(document.getElementById('intraEntryPC'));}"
-									   checked="checked"/>Yes
-							{% else %}
-								<input type="radio" id="intraEntryCullNo" name="intraEntryCull" value="no"
-									   onclick="disableElement(document.getElementById('intraEntryPC'));"
-									   checked="checked"/>No
-								<input type="radio" id="intraEntryCullYes" name="intraEntryCull" value="yes"
-									   onclick="if (document.getElementById('cullByEntryYes').checked) {enableElement(document.getElementById('intraEntryPC'));}"
-									   />Yes
-							{% endif %}
-						</td>
-					</tr>
-					<tr>
-						<td><b>Within entry percentage sequence identity:</b></td>
-						<td>
-							<input type="text" id="intraEntryPC" name="intraEntryPC" value={{ intraEntryPC }} size="10" disabled style="background-color: #222222;"/>
-						</td>
-						<td id="intraEntryInfo" style="color:#000000; border: #FFFFFF 1px solid;">Valid values are 5-100 inclusive.</td>
-					</tr>
-				</table>
-				<br><hr>
 				<p align="center">
 					<input type="submit" value="Submit Form"/>
 				</p>
