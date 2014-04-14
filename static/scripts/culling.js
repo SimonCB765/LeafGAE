@@ -2,22 +2,9 @@ function validateForm(form)
 {
     var invalidChains = false;
     var textInChainsBox = (form.pastedInfo.value.trim()).length != 0;
-    var textInSpeciesBox = (form.speciesTextBox.value.trim()).length != 0;
-    if (form.wholePDBNo.checked && textInChainsBox && textInSpeciesBox)
+    if (!textInChainsBox)
     {
-        // Invalid if the whole PDB is not being culled and text is present in both chain/entry and organism inputs.
-        var invalidChains = true;
-        document.getElementById('bothInputsWarning').style.background = '#F7730E';
-        document.getElementById('bothInputsWarning').style.display = 'inherit';
-    }
-    else
-    {
-        document.getElementById('bothInputsWarning').style.background = 'inherit';
-        document.getElementById('bothInputsWarning').style.display = 'none';
-    }
-    if (form.wholePDBNo.checked && !(textInChainsBox || textInSpeciesBox))
-    {
-        // Invalid if the whole PDB is not being culled and text is present in neither the chain/entry not organism inputs.
+        // The input is invalid if no text is present in the chain input text box.
         var invalidChains = true;
         document.getElementById('noInputsWarning').style.background = '#F7730E';
         document.getElementById('noInputsWarning').style.display = 'inherit';

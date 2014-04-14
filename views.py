@@ -25,5 +25,5 @@ def downloads():
 def culling():
     """Render the culling entry page."""
     flash('WARNING: Some parameters have invalid values. The fields with invalid values are highlighted in orange. Please correct the highlighted fields before submitting.')
-    return render_template('culling.html', speciesTextBox='', pc=20, minRes=0.0, maxRes=3.0, maxRVal=0.5, minLen=40, maxLen=10000, enforceMinLength=False,
+    return render_template('culling.html', pc=20, minRes=0.0, maxRes=3.0, maxRVal=0.5, minLen=40, maxLen=10000, enforceMinLength=False,
 		enforceMaxLength=False, includeNonXray=False, includeAlphaCarbon=False, cullByEntry=False, intraEntryCull=False, intraEntryPC=20)

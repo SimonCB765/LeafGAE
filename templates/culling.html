@@ -26,57 +26,19 @@
 			{% endwith %}
 
 			<form id="cullform" enctype="multipart/form-data" action="{{ url_for('culling') }}" method="post" onsubmit="return validateForm(this)">
-				<h2>Select Chains and Entries to Cull</h2>
-				<div id="wholeInfoBox" style="float: left; width: 25%; text-align: center; font-size: 17px; border:3px solid #F7730E;">
-					Culling the whole PDB disables culling by chains/entries or by organism.
-				</div>
-				<div style="float: left; width: 50%; text-align: center; font-size: 17px;">
-					<br>
-					<b>Cull the whole PDB?</b>
-					{% if wholePDB %}
-						<input type="radio" id="wholePDBYes" name="wholePDB" value="yes"
-							   onclick="disableElement(document.getElementById('pastedInfo'));
-										disableElement(document.getElementById('speciesTextBox'));"
-							   checked="checked"/>Yes
-						<input type="radio" id="wholePDBNo" name="wholePDB" value="no"
-							   onclick="enableElement(document.getElementById('pastedInfo'));
-										enableElement(document.getElementById('speciesTextBox'));"/>No
-					{% else %}
-						<input type="radio" id="wholePDBYes" name="wholePDB" value="yes"
-							   onclick="disableElement(document.getElementById('pastedInfo'));
-										disableElement(document.getElementById('speciesTextBox'));"/>Yes
-						<input type="radio" id="wholePDBNo" name="wholePDB" value="no"
-							   onclick="enableElement(document.getElementById('pastedInfo'));
-										enableElement(document.getElementById('speciesTextBox'));"
-							   checked="checked"/>No
-					{% endif %}
-				</div>
-				<div style="clear: both;">
-					<br>
-				</div>
-				<div id="chainInfoBox" style="float: left; width: 25%; text-align: center; font-size: 17px; border:3px solid #F7730E;">
-					Either chains/entries can be culled or an organism name can be entered, but not both.
+				<h2>Select Chains to Cull</h2>
+				<div id="chainInfoBox" style="float: left; width: 25%;">
 					<br><br>
-					The expected format for the chains/entries is to have one ID on each line, with no other text on the line.
+					<!-- The expected format for the chains is to have one chain ID on each line, with no other text on the line. -->
 					<br><br>
-					The organism name is case insensitive, and should be entered as it appears in the PDB (e.g. homo sapiens).
 				</div>
 				<div style="float: left; width: 50%; text-align: center;">
-					<b>Enter the chains/entries you wish to cull in the box below:</b>
+					<b>Enter the chains you wish to cull in the box below:</b>
 					<textarea id="pastedInfo" name="pastedInfo" rows="10" cols="50" maxlength="200000" style="border:3px solid #F7730E;">{{ pastedChains }}</textarea>
-					<b>Alternatively, enter an organism of your choosing:</b>
-					{% if speciesTextBox %}
-						<input id="speciesTextBox" type="text" name="speciesTextBox" value={{ speciesTextBox }} size="50" style="border:3px solid #F7730E;"/>
-					{% else %}
-						<input id="speciesTextBox" type="text" name="speciesTextBox" value="" size="50" style="border:3px solid #F7730E;"/>
-					{% endif %}
 				</div>
 				<br><br><br>
-				<div id="bothInputsWarning" style="float: right; width: 24%; border: #FFFFFF 1px solid; font-size: 17px; display: none;">
-					Both chains/entries and an organism name have been entered. Only one or the other is permitted.
-				</div>
 				<div id="noInputsWarning" style="float: right; width: 24%; border: #FFFFFF 1px solid; font-size: 17px; display: none;">
-					Neither chains/entries nor an organism name have been entered. One must be entered if not culling from the whole PDB.
+					No chains have been entered.
 				</div>
 				<div style="clear: both;">
 					<br><hr>
@@ -224,6 +186,6 @@
 			</form>
 		</div>
 
-		<div id="footer"><p>Last updated <!-- #BeginDate format:Am1 -->January 16, 2014<!-- #EndDate -->.</p></div>
+		<div id="footer"><p>Last updated January 16, 2014.</p></div>
 	</body>
 </html>
