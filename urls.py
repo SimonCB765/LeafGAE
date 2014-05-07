@@ -19,6 +19,16 @@ app.add_url_rule('/downloads', 'downloads', view_func=views.downloads, methods=[
 # Culling entry page.
 app.add_url_rule('/culling', 'culling', view_func=views.culling, methods=['POST', 'GET'])
 
+# Serve culled lists.
+app.add_url_rule('/serve_list/<blobKey>', 'serve_list', view_func=views.serve_list)
+
+# Serve lists of plaintext chains.
+app.add_url_rule('/display_chains/<cullID>/<nonredundant>', 'display_chains', view_func=views.display_chains)
+
+# Admin culled list upload pages.
+app.add_url_rule('/admin/cull_upload', 'cull_upload_form', view_func=views.cull_upload_form, methods=['POST', 'GET'])
+app.add_url_rule('/admin/cull_upload/handler', 'cull_upload_handler', view_func=views.cull_upload_handler, methods=['POST', 'GET'])
+
 
 #    url(r'^cullingchoice/$', 'Leaf.views.cullingchoice'),
 #    url(r'^user_culling/$', 'Leaf.views.user_culling'),

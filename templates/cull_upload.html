@@ -1,0 +1,67 @@
+<html>
+	<head>
+		<title>Leaf Protein Culling Server</title>
+	</head>
+	<body>
+		<form enctype="multipart/form-data" action="{{ upload_url }}" method="post">
+			<table align='center' border='0' cellpadding=5>
+				<tr>
+					<td>Upload File: <input type="file" name="culledListFile"></td>
+				</tr>
+				<tr>
+					<td><b>Percentage Sequence Identity:</b></td>
+					<td>
+						<select name="maxIdentity" style="width: 60px;">
+							<option value="20" selected="selected">20</option>
+							<option value="25">25</option>
+							<option value="30">30</option>
+							<option value="40">40</option>
+							<option value="50">50</option>
+							<option value="60">60</option>
+							<option value="70">70</option>
+							<option value="80">80</option>
+							<option value="90">90</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td><b>Maximum Resolution:</b></td>
+					<td>
+						<select name="maxRes" style="width: 60px;">
+							<option value="1.6" selected="selected">1.6</option>
+							<option value="1.8">1.8</option>
+							<option value="2.0">2.0</option>
+							<option value="2.2">2.2</option>
+							<option value="2.5">2.5</option>
+							<option value="3.0">3.0</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td><b>Maximum R Value:</b></td>
+					<td>
+						<select name="maxRVal" style="width: 60px;">
+							<option value="0.25" selected="selected">0.25</option>
+							<option value="1.0">1.0</option>
+						</select>
+					</td>
+				</tr>
+					<tr>
+						<td><b>Include non-X-ray entries?</b></td>
+						<td>
+							<input type="radio" name="includeNonXray" value="yes"/>Yes
+							<input type="radio" name="includeNonXray" value="no" checked="checked"/>No
+						</td>
+					</tr>
+					<tr>
+						<td><b>Include entries with only alpha carbons?</b></td>
+						<td>
+							<input type="radio" name="includeAlphaCarbon" value="yes"/>Yes
+							<input type="radio" name="includeAlphaCarbon" value="no" checked="checked"/>No
+						</td>
+					</tr>
+			</table>
+			<p align="center"><input type="submit" value="Submit Form" />
+		</form>
+	</body>
+</html>
