@@ -1,0 +1,64 @@
+<html>
+	<head>
+		<title>Leaf Protein Culling Server</title>
+		<link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/main.css') }}">
+	</head>
+	<body>
+		<br>
+		<div id="navigation" align="center">
+			<b><a href="{{ url_for('home') }}">Home</a></b>
+			<hr>
+			<b><a href="{{ url_for('culling') }}">Culling</a></b>
+			<hr>
+			<b><a href="{{ url_for('downloads') }}">Pre-Culled Lists</a></b>
+			<hr>
+			<b><a href="{{ url_for('contacts') }}">Contact Information</a></b>
+		</div>
+		<div id="content">
+			<p align="center">
+				You're culling request was successfully received, and is being processed now.
+				<br>
+				The result's will be email to your address ({{ email }}) once the culling is complete.
+				<br>
+				The time taken to finish the culling is heavily dependent on the number of chains submitted and the percentage sequence identity used.
+				<br>
+				The parameters for your culling are:
+				<br><br>
+				<table align='center' border="2" cellpadding="5" style="width:50%; border:0; font-size:1em;">
+					<tr>
+						<td><b>Percentage Sequence Identity:</b></td>
+						<td align='center'>{{ sequenceIdentity }}</td>
+					</tr>
+					<tr>
+						<td><b>Minimum Resolution:</b></td>
+						<td align='center'>{{ minRes }}</td>
+					</tr>
+					<tr>
+						<td><b>Maximum Resolution:</b></td>
+						<td align='center'>{{ maxRes }}</td>
+					</tr>
+					<tr>
+						<td><b>Maximum R Value:</b></td>
+						<td align='center'> {{ maxRVal }}</td>
+					</tr>
+					<tr>
+						<td><b>Minimum Chain Length:</b></td>
+						<td align='center'> {{ minLen }}</td>
+					</tr>
+					<tr>
+						<td><b>Maximum Chain Length:</b></td>
+						<td align='center'> {{ maxLen }}</td>
+					</tr>
+					<tr>
+						<td><b>Include Non-X-ray Entries:</b></td>
+						<td align='center'> {{ includeNonXray }}</td>
+					</tr>
+					<tr>
+						<td><b>Include Alpha Carbon Only Entries:</b></td>
+						<td align='center'> {{ includeAlphaCarbon }}</td>
+					</tr>
+				</table>
+			</p>
+		</div>
+	</body>
+</html>
