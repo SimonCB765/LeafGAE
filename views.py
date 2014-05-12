@@ -73,6 +73,40 @@ def downloads():
 
 def culling():
     """Render the culling entry page."""
-    flash('WARNING: Some parameters have invalid values. The fields with invalid values are highlighted in orange. Please correct the highlighted fields before submitting.')
-    return render_template('culling.html', pc=20, minRes=0.0, maxRes=3.0, maxRVal=0.5, minLen=40, maxLen=10000, enforceMinLength=False,
-        enforceMaxLength=False, includeNonXray=False, includeAlphaCarbon=False)
+    if request.method == 'POST':
+        # Extract the user specified parameters.
+        submittedChains = request.form['pastedInfo']
+        sequenceIdentity = request.form['pc']
+        minRes = request.form['minRes']
+        maxRes = request.form['maxRes']
+        maxRVal = request.form['maxRVal']
+        enforceMinLength = request.form['enforceMinLength']
+        minLen = None
+        if enforceMinLength == 'yes':
+            minLen = request.form['minLen']
+        enforceMaxLength = request.form['enforceMaxLength']
+        maxLen = None
+        if enforceMinLength == 'yes':
+            maxLen = request.form['maxLen']
+        includeNonXray = True if request.form['includeNonXray'] == 'yes' else False
+        includeAlphaCarbon = True if request.form['includeAlphaCarbon'] == 'yes' else False
+        emailAddress = request.form['email']
+
+        # Process the chains.
+        chunkedChains = [i.strip() for i in submittedChains.split('\n')]
+        
+        # Save the cull job.        
+        newCullJob = models.CullJob(similarity=float(sequenceIdentity), minRes=float(minRes), maxRes=float(maxRes), maxRVal=float(maxRVal),
+                                    minLen=-1 if not minLen else int(minLen), maxLen=-1 if not maxLen else int(maxLen), includeNonXray=includeNonXray,
+                                    includeAlphaCarbon=includeAlphaCarbon, chains='\n'.join(chunkedChains), email=emailAddress)
+        newCullJobKey = newCullJob.put()
+        newCullJobID = newCullJobKey.id()
+		
+		# Start up the culling asynchronously.
+        
+        # Put up the successful submission page.
+        return render_template('culling_success.html', sequenceIdentity=sequenceIdentity, minRes=minRes, maxRes=maxRes, maxRVal=maxRVal,
+                               minLen=minLen or 'Not Enforced', maxLen=maxLen or 'Not Enforced', includeNonXray='Yes' if includeNonXray else 'No',
+                               includeAlphaCarbon='Yes' if includeAlphaCarbon else 'No', email=emailAddress)
+    elif request.method == 'GET':
+        return render_template('culling.html')
