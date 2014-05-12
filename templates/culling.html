@@ -38,10 +38,10 @@
 				</div>
 				<br><br><br>
 				<div id="noInputsWarning" style="float: right; width: 24%; border: #FFFFFF 1px solid; font-size: 17px; display: none;">
-					No chains have been entered.
+					You must enter at least two valid chain identifiers.
 				</div>
 				<div style="clear: both;">
-					<br><hr>
+					<br>Information about the expected input format and the culling process can be found <b><a href="{{ url_for('help') }}#PDBSubsetCulling">here</a></b>.<hr>
 				</div>
 				<h2 align="center">Select Sequence Properties</h2>
 				<table align='center' border="0" cellpadding="0">
@@ -128,6 +128,17 @@
 								<input type="radio" name="includeAlphaCarbon" value="yes"/>Yes
 							{% endif %}
 						</td>
+					</tr>
+					<tr>
+						<td><b>Email address to send results to:</b></td>
+						<td colspan="2">
+							{% if emailProvided %}
+								<input type="text" id="email" name="email" value={{ email }} size="25"/>
+							{% else %}
+								<input type="text" id="email" name="email" size="25"/>
+							{% endif %}
+						</td>
+						<td id="emailInfo" style="color:#000000; border: #FFFFFF 1px solid;">You must enter a valid email address.</td>
 					</tr>
 				</table>
 				<br><hr>

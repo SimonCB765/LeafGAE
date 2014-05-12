@@ -1,10 +1,11 @@
 function validateForm(form)
 {
     var invalidChains = false;
-    var textInChainsBox = (form.pastedInfo.value.trim()).length != 0;
-    if (!textInChainsBox)
+    var textInChainsBox = form.pastedInfo.value.trim();
+    if (textInChainsBox.length === 0 || ((textInChainsBox.match(/\n/g) || []).length === 0))
     {
-        // The input is invalid if no text is present in the chain input text box.
+        // The input is invalid if no text is present in the chain input text box, or if there is not at least one new line character
+		// (as this ensures a minimum of two chains).
         var invalidChains = true;
         document.getElementById('noInputsWarning').style.background = '#F7730E';
         document.getElementById('noInputsWarning').style.display = 'inherit';
@@ -20,9 +21,22 @@ function validateForm(form)
     var invalidLength = invalidLengthCheck(form.minLen, form.enforceMinLengthYes.checked, document.getElementById('minLengthInfo'),
                                            form.maxLen, form.enforceMaxLengthYes.checked, document.getElementById('maxLengthInfo'),
                                            0);
-    if (invalidChains || invalidSeqIden || invalidRes || invalidRVal || invalidLength)
+	var emailAddress = form.email.value.trim();
+	var invalidEmail = (emailAddress.length === 0);  // Invalid if there is no text.
+	invalidEmail = invalidEmail || ((emailAddress.match(/@/g) || []).length !== 1);  // Invalid if there is not exactly one @ (the || [] prevents returning null when there is no @).
+	if (invalidEmail)
+	{
+		// There was no email address supplied.
+		document.getElementById('emailInfo').style.background = '#F7730E';
+    }
+    else
     {
-        alert("WARNING Some parameters have invalid values. The fields with invalid values are highlighted in orange. Please correct the highlighted fields before submitting.");
+		document.getElementById('emailInfo').style.background = 'inherit';
+	}
+
+    if (invalidChains || invalidSeqIden || invalidRes || invalidRVal || invalidLength || invalidEmail)
+    {
+        alert('WARNING Some parameters have invalid values. The fields with invalid values are highlighted in orange. Please correct the highlighted fields before submitting.');
         if (invalidChains)
         {
             // If the chains input is invalid, then scroll to the top.
@@ -30,6 +44,23 @@ function validateForm(form)
         }
         return false;
     }
+	else
+	{
+		// Check that chains are all valid chains.
+		var invalidChainID = false;
+		var individualChains = textInChainsBox.split('\n');
+		for (var i = 0; i < individualChains.length; i++)
+		{
+			var potentialChain = individualChains[i].trim();
+			if (! potentialChain.match(/^[0-9][A-Za-z0-9]{4}/g))
+			{
+				// A chain must start with a number, and then be a string of 4 numbers or characters.
+				alert('Chain ' + potentialChain + ' is not a valid chain identifier.');
+				window.scrollTo(0,0);
+				return false;
+			}
+		}
+	}
     return true;
 }
 
