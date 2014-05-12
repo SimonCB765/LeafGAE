@@ -15,394 +15,362 @@
 			<b><a href="{{ url_for('contacts') }}">Contact Information</a></b>
 		</div>
 
-	<div id="content">
-		<a name="PDBSubsetCulling"></a>
-		<h2>PDB Subset Culling</h2>
-		<p>
-			<ul>
-				<li>
-					The percentage sequence identity submitted will be taken to be the maximum sequence identity permissible. 
-					For example, if 20% sequence identity is chosen, there will be no chains/entries with greater than 20% 
-					sequence identity in the non-redundant set.
-				</li>
-				<li>
-					The minimum and maximum resolution are used to ensure that all chains/entries in the non-redundant dataset 
-					have a resolution within the user specified range.
-				</li>
-				<li>
-					The maximum R value is used to ensure that all chains/entries in the non-redundant dataset have an R value 
-					no greater than the maximum specified.
-				</li>
-				<li>
-					If non-X-ray entries are not included, then only those chains/entries that have X-ray diffraction recorded  
-					as their experimental type will be present in the non-redundant dataset.
-				</li>
-				<li>
-					If alpha carbon only entries are not included, then chains/entries that only have alpha carbon atoms will 
-					not be present in the non-redundant dataset.
-				</li>
-				<li>
-					The two methods of culling the PDB are 'by chain' and 'by entry'. Please see 
-					<a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC1160163/">PISCES</a> for a description of the 
-					differences between the two methods.
-				</li>
-				<li>
-					The within entry percentage sequence identity is used when culling chains within entries. A value of 20% 
-					will ensure that no two chains from the same entry with greater than 20% sequence identity are kept in 
-					the non-redundant dataset. Within entry culling is performed only if 'by entry' culling is selected. 
-					Please see <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC1160163/">PISCES</a> for a description 
-					of the within entry culling. 
-				</li>
-				<li>
-					The minimum and maximum lengths are optional, and are used to ensure that no sequences have fewer amino 
-					acids than the minimum length provided or more amino acids than the maximum length provided.
-				</li>
-			</ul>
-		</p>
-		<hr>
-		<a name="ResultsDescription"></a>
-		<h2>Description of Results Files</h2>
-		<p>
-			See <b><a href="{{ url_for('help') }}#DataCollection">here</a></b> for more information about the extraction of the data from the PDB, experimental abbreviations, etc.<br>
-			<ul>
-				<li>
-					User Input<!-- (not present if culling from the whole PDB was performed)-->
-					<ul><li>A list of the chains/entries submitted by the user, with one chain/entry on each line.</li></ul>
-				</li>
-			</ul>
-			<ul>
-				<li>
-					Input Sequences Removed
-					<ul><li>A list of the redundant chains/entries, with one chain/entry on each line.</li></ul>
-				</li>
-			</ul>
-			<ul>
-				<li>
-					Non-redundant Sequence Statistics
-					<ul>
-						<li>A table of information about the non-redundant chains/entries submitted by the user.</li>
-						<li>Each line contains six values separated by tabs ('\t').</li>
-						<li>
-							The values (from left to right) are as follows: the name of the chain/entry, the length (in amino acids) of the chain/entry (the length of an entry is the length of a random chain in the entry), 
-							the abbreviation for the experimental method used to determine the structure, the resolution of the structure, the R-value and the free R-value.
-						</li>
-					</ul>
-				</li>
-			</ul>
-			<ul>
-				<li>
-					Non-redundant Sequences
-					<ul>
-						<li>A FASTA format file of the chains in the non-redundant dataset.</li>
-						<li>If cull by entry was selected, then this file contains all the chains in each non-redundant entry that were not removed by intra-entry culling of chains.</li>
-						<li>Each chain is represented by two consecutive lines in the file.</li>
-						<li>The first line is an identifier line for the chain. The second line contains the sequence of the chain.</li>
-						<li>
-							The identifier line begins with a '>', and the values (from left to right) are: Chain ID, 
-							Chain Length, Experimental Method Abbreviation, Resolution, R-value, Free R-value, Alpha Carbon Only, Chain Description, &#60DBCode DBIdentifier&#62 and [OrganismName].
-						</li>
-						<li>Tabs separate the values on the identifier line.</li>
-						<li>There may be additional whitespace in the Chain Description.</li>
-						<li>Alpha Carbon Only is 'no' if the chain structure is not purely composed of alpha carbon atoms.</li>
-						<li>
-							The DBCode is the code used by the PDB to record an external database where information about the chain can be found (e.g. UNP for UniProt), and the 
-							DBIdentifier is the identifier used to locate the chain in the external database (e.g. VAV_MOUSE).
-						</li>
-						<li>
-							The OrganismName is case insensitive, and appears exactly as it was recorded in the PDB (e.g. Mus musculus and MUS MUSCULUS may both appear). It always
-							consists of the genus and species of the organism separated by a space.
-						</li>
-					</ul>
-				</li>
-			</ul>
-		</p>
-		<hr>
-		<a name="DataCollection"></a>
-		<h2>Method of Data Collection</h2>
-		<p>
-			<ul>
-				<li>
-					If 50% or more of the amino acids in an amino acid sequence are X (the amino acid code for unknown), then the entity is marked as a NonProtein, 
-					and not included in the list of proteins.
-				</li>
-				<li>
-					When determining the value for the resolution:<br>
-					Only one of the _refine and _reflns records is used (with preference given to the _refine record).<br>
-					If there is no value present for the resolution, then the resolution is set to 100.<br>
-					Similariy if there is no value present for the R-value or the R-free value, then these values are set to 1.
-				</li>
-				<li>
-					When determining the organism which the entity originates from:<br>
-					Only one of _entity_src_gen, _entity_src_nat or _pdbx_entity_src_syn is used (with preference given in the order _entity_src_nat, _entity_src_gen and finally _pdbx_entity_src_syn).
-				</li>
-				<li>
-					Experimental Method Abbreviations
-					<ul>
-						<li>ELECTRON MICROSCOPY - EM</li>
-						<li>FIBER DIFFRACTION - FIBER</li>
-						<li>INFRARED SPECTROSCOPY - FTIR</li>
-						<li>NEUTRON DIFFRACTION - NEUTRON</li>
-						<li>SOLUTION NMR - NMR</li>
-						<li>SOLID-STATE NMR - NMR</li>
-						<li>POWDER DIFFRACTION - POWDER</li>
-						<li>X-RAY DIFFRACTION - XRAY</li>
-						<li>FLUORESCENCE TRANSFER - NA</li>
-						<li>ELECTRON CRYSTALLOGRAPHY - NA</li>
-						<li>SOLUTION SCATTERING - NA</li>
-						<li>Anything else is marked as NA.</li>
-					</ul>
-				<li>
-					The following are the mmCIF headings and subheadings that were used to collect the data for the PDB entries.
-					<ul>
-						<li>
-							_entry
-							<ul>
-								<li>
-									_entry.id
-									<ul>
-										<li>
-											Used to determine the name of the PDB entry (e.g. 3A0B).
-										</li>
-									</ul>
-								</li>
-							</ul>
-						</li>
-						<li>
-							_entity
-							<ul>
-								<li>
-									_entity.id
-									<ul>
-										<li>
-											The numeric identifier used to identify the specific entity within the entry record.
-										</li>
-									</ul>
-								</li>
-								<li>
-									_entity.pdbx_description
-									<ul>
-										<li>
-											A description of the entity.
-										</li>
-									</ul>
-								</li>
-							</ul>
-						</li>
-						<li>
-							_entity_poly
-							<ul>
-								<li>
-									_entity_poly.entity_id
-									<ul>
-										<li>
-											Used to determine the entity that the rest of the _entity_poly information pertains to.
-										</li>
-									</ul>
-								</li>
-								<li>
-									_entity_poly.type
-									<ul>
-										<li>
-											Used to determine the type of the entity (e.g. polypeptide(L)).
-										</li>
-									</ul>
-								</li>
-								<li>
-									_entity_poly.pdbx_seq_one_letter_code_can
-									<ul>
-										<li>
-											Used to determine the nucleotide or amino acid sequence of the entity.
-										</li>
-									</ul>
-								</li>
-								<li>
-									_entity_poly.pdbx_strand_id
-									<ul>
-										<li>
-											Used to determine the single character codes corresponding to the entity (the 'a', 'A', 'b', '1', etc. that comes after the entry e.g. 3A0Ba, 3A0BA, ...).
-										</li>
-									</ul>
-								</li>
-							</ul>
-						</li>
-						<li>
-							_exptl
-							<ul>
-								<li>
-									_exptl.method
-									<ul>
-										<li>
-											The experimental method that was used to determine the structure.
-										</li>
-									</ul>
-								</li>
-							</ul>
-						</li>
-						<li>
-							_atom_site
-							<ul>
-								<li>
-									_atom_site.label_atom_id
-									<ul>
-										<li>
-											Records the type of atom. Used to determine if the entity contains only alpha carbon atoms.
-										</li>
-									</ul>
-								</li>
-								<li>
-									_atom_site.label_entity_id
-									<ul>
-										<li>
-											Used to determine the entity that the rest of the _atom_site information pertains to.
-										</li>
-									</ul>
-								</li>
-							</ul>
-						</li>
-						<li>
-							_refine
-							<ul>
-								<li>
-									_refine.ls_d_res_high
-									<ul>
-										<li>
-											Used to determine the resolution of the structure in an X-ray diffraction experiment.
-										</li>
-									</ul>
-								</li>
-								<li>
-									_refine.ls_R_factor_obs
-									<ul>
-										<li>
-											Used to determine the R-value. This is the R-value measurement used when giving an upper bound on the R-value during culling.
-										</li>
-									</ul>
-								</li>
-								<li>
-									_refine.ls_R_factor_R_free
-									<ul>
-										<li>
-											Used to determine the R-free value.
-										</li>
-									</ul>
-								</li>
-							</ul>
-						</li>
-						<li>
-							_reflns
-							<ul>
-								<li>
-									_reflns.d_resolution_high
-									<ul>
-										<li>
-											Used to determine the resolution of the structure in an X-ray diffraction experiment.
-										</li>
-									</ul>
-								</li>
-							</ul>
-						</li>
-						<li>
-							_struct_ref
-							<ul>
-								<li>
-									_struct_ref.entity_id
-									<ul>
-										<li>
-											Used to determine the entity that the rest of the _struct_ref information pertains to.
-										</li>
-									</ul>
-								</li>
-								<li>
-									_struct_ref.db_name
-									<ul>
-										<li>
-											Used to determine the name of the external database linked to the entity.
-										</li>
-									</ul>
-								</li>
-								<li>
-									_struct_ref.db_code
-									<ul>
-										<li>
-											Used to determine the code which can be used to access information about the entity in the external database
-										</li>
-									</ul>
-								</li>
-							</ul>
-						</li>
-						<li>
-							_entity_src_gen
-							<ul>
-								<li>
-									_entity_src_gen.entity_id
-									<ul>
-										<li>
-											Used to determine the entity that the rest of the _entity_src_gen information pertains to.
-										</li>
-									</ul>
-								</li>
-								<li>
-									_entity_src_gen.pdbx_gene_src_scientific_name
-									<ul>
-										<li>
-											Used to determine the scientific name of the organism that the entity came from.
-										</li>
-									</ul>
-								</li>
-							</ul>
-						</li>
-						<li>
-							_entity_src_nat
-							<ul>
-								<li>
-									_entity_src_nat.entity_id
-									<ul>
-										<li>
-											Used to determine the entity that the rest of the _entity_src_nat information pertains to.
-										</li>
-									</ul>
-								</li>
-								<li>
-									_entity_src_nat.pdbx_organism_scientific
-									<ul>
-										<li>
-											Used to determine the scientific name of the organism that the entity came from.
-										</li>
-									</ul>
-								</li>
-							</ul>
-						</li>
-						<li>
-							_pdbx_entity_src_syn
-							<ul>
-								<li>
-									_pdbx_entity_src_syn.entity_id
-									<ul>
-										<li>
-											Used to determine the entity that the rest of the _pdbx_entity_src_syn information pertains to.
-										</li>
-									</ul>
-								</li>
-								<li>
-									_pdbx_entity_src_syn.organism_scientific
-									<ul>
-										<li>
-											Used to determine the scientific name of the organism that the entity came from.	
-										</li>
-									</ul>
-								</li>
-							</ul>
-						</li>
-					</ul>
-				</li>
-			</ul>
-		</p>
-	</div>
-
-	<div id="footer">
-		<p>Last updated <!-- #BeginDate format:Am1 -->January 16, 2014<!-- #EndDate -->.</p>
-	</div>
-
-</body>
-
+		<div id="content">
+			<a name="PDBSubsetCulling"></a>
+			<h2>PDB Subset Culling</h2>
+			<p>
+				<ul>
+					<li>
+						The percentage sequence identity submitted will be taken to be the maximum sequence identity permissible. 
+						For example, if 20% sequence identity is chosen, there will be no chains with greater than 20% 
+						sequence identity in the non-redundant set.
+					</li>
+					<li>
+						The minimum and maximum resolution are used to ensure that all chains in the non-redundant dataset 
+						have a resolution within the user specified range.
+					</li>
+					<li>
+						The maximum R value is used to ensure that all chains in the non-redundant dataset have an R value 
+						no greater than the maximum specified.
+					</li>
+					<li>
+						If non-X-ray entries are not included, then only those chains that have X-ray diffraction recorded  
+						as their experimental type will be present in the non-redundant dataset.
+					</li>
+					<li>
+						If alpha carbon only entries are not included, then chains that only have alpha carbon atoms will 
+						not be present in the non-redundant dataset.
+					</li>
+					<li>
+						The minimum and maximum lengths are optional, and are used to ensure that no sequences have fewer amino 
+						acids than the minimum length provided or more amino acids than the maximum length provided.
+					</li>
+				</ul>
+			</p>
+			<hr>
+			<a name="ResultsDescription"></a>
+			<h2>Description of Results File Format</h2>
+			<p>
+				See <b><a href="{{ url_for('help') }}#DataCollection">here</a></b> for more information about the extraction of the data from the PDB.<br>
+				<ul>
+					<li>A FASTA format file of the chains in the non-redundant dataset.</li>
+					<li>Each chain is represented by two consecutive lines in the file.</li>
+					<li>The first line is an identifier line for the chain. The second line contains the sequence of the chain.</li>
+					<li>
+						The identifier line begins with a '>', and the values (from left to right) are: chain ID, chain length, resolution, R-value,
+						alpha carbon only status and non-X-ray status.
+					</li>
+					<li>Tabs separate the values on the identifier line.</li>
+					<li>Alpha carbon only status is 'no' if the chain structure is not purely composed of alpha carbon atoms.</li>
+					<li>Non-X-ray status is 'no' if the chain's structure was determined using X-ray diffraction.</li>
+				</ul>
+			</p>
+			<hr>
+			<a name="PreculledDescription"></a>
+			<h2>Description of Pre-culled List Format</h2>
+			<p>
+				See <b><a href="{{ url_for('help') }}#DataCollection">here</a></b> for more information about the extraction of the data from the PDB.<br>
+				<ul>
+					<li>A FASTA format file of the chains in the non-redundant dataset.</li>
+					<li>The first line is an identifier line for the chain. The second line contains the sequence of the chain.</li>
+					<li>
+						The identifier line begins with a '>', and the values (from left to right) are: Chain ID, 
+						Chain Length, Experimental Method Abbreviation, Resolution, R-value, Free R-value, Alpha Carbon Only, Chain Description, &#60DBCode DBIdentifier&#62 and [OrganismName].
+					</li>
+					<li>Tabs separate the values on the identifier line.</li>
+					<li>There may be additional whitespace in the Chain Description.</li>
+					<li>Alpha Carbon Only is 'no' if the chain structure is not purely composed of alpha carbon atoms.</li>
+					<li>
+						The DBCode is the code used by the PDB to record an external database where information about the chain can be found (e.g. UNP for UniProt), and the 
+						DBIdentifier is the identifier used to locate the chain in the external database (e.g. VAV_MOUSE).
+					</li>
+					<li>
+						The OrganismName is case insensitive, and appears exactly as it was recorded in the PDB (e.g. Mus musculus and MUS MUSCULUS may both appear). It always
+						consists of the genus and species of the organism separated by a space.
+					</li>
+				</ul>
+			</p>
+			<hr>
+			<a name="DataCollection"></a>
+			<h2>Method of Data Collection</h2>
+			<p>
+				<ul>
+					<li>
+						If 50% or more of the amino acids in an amino acid sequence are X (the amino acid code for unknown), then the entity is marked as a NonProtein, 
+						and not included in the list of proteins.
+					</li>
+					<li>
+						When determining the value for the resolution:<br>
+						Only one of the _refine and _reflns records is used (with preference given to the _refine record).<br>
+						If there is no value present for the resolution, then the resolution is set to 100.<br>
+						Similariy if there is no value present for the R-value or the R-free value, then these values are set to 1.
+					</li>
+					<li>
+						When determining the organism which the entity originates from:<br>
+						Only one of _entity_src_gen, _entity_src_nat or _pdbx_entity_src_syn is used (with preference given in the order _entity_src_nat, _entity_src_gen and finally _pdbx_entity_src_syn).
+					</li>
+					<li>
+						Experimental Method Abbreviations
+						<ul>
+							<li>ELECTRON MICROSCOPY - EM</li>
+							<li>FIBER DIFFRACTION - FIBER</li>
+							<li>INFRARED SPECTROSCOPY - FTIR</li>
+							<li>NEUTRON DIFFRACTION - NEUTRON</li>
+							<li>SOLUTION NMR - NMR</li>
+							<li>SOLID-STATE NMR - NMR</li>
+							<li>POWDER DIFFRACTION - POWDER</li>
+							<li>X-RAY DIFFRACTION - XRAY</li>
+							<li>FLUORESCENCE TRANSFER - NA</li>
+							<li>ELECTRON CRYSTALLOGRAPHY - NA</li>
+							<li>SOLUTION SCATTERING - NA</li>
+							<li>Anything else is marked as NA.</li>
+						</ul>
+					<li>
+						The following are the mmCIF headings and subheadings that were used to collect the data for the PDB entries.
+						<ul>
+							<li>
+								_entry
+								<ul>
+									<li>
+										_entry.id
+										<ul>
+											<li>
+												Used to determine the name of the PDB entry (e.g. 3A0B).
+											</li>
+										</ul>
+									</li>
+								</ul>
+							</li>
+							<li>
+								_entity
+								<ul>
+									<li>
+										_entity.id
+										<ul>
+											<li>
+												The numeric identifier used to identify the specific entity within the entry record.
+											</li>
+										</ul>
+									</li>
+									<li>
+										_entity.pdbx_description
+										<ul>
+											<li>
+												A description of the entity.
+											</li>
+										</ul>
+									</li>
+								</ul>
+							</li>
+							<li>
+								_entity_poly
+								<ul>
+									<li>
+										_entity_poly.entity_id
+										<ul>
+											<li>
+												Used to determine the entity that the rest of the _entity_poly information pertains to.
+											</li>
+										</ul>
+									</li>
+									<li>
+										_entity_poly.type
+										<ul>
+											<li>
+												Used to determine the type of the entity (e.g. polypeptide(L)).
+											</li>
+										</ul>
+									</li>
+									<li>
+										_entity_poly.pdbx_seq_one_letter_code_can
+										<ul>
+											<li>
+												Used to determine the nucleotide or amino acid sequence of the entity.
+											</li>
+										</ul>
+									</li>
+									<li>
+										_entity_poly.pdbx_strand_id
+										<ul>
+											<li>
+												Used to determine the single character codes corresponding to the entity (the 'a', 'A', 'b', '1', etc. that comes after the entry e.g. 3A0Ba, 3A0BA, ...).
+											</li>
+										</ul>
+									</li>
+								</ul>
+							</li>
+							<li>
+								_exptl
+								<ul>
+									<li>
+										_exptl.method
+										<ul>
+											<li>
+												The experimental method that was used to determine the structure.
+											</li>
+										</ul>
+									</li>
+								</ul>
+							</li>
+							<li>
+								_atom_site
+								<ul>
+									<li>
+										_atom_site.label_atom_id
+										<ul>
+											<li>
+												Records the type of atom. Used to determine if the entity contains only alpha carbon atoms.
+											</li>
+										</ul>
+									</li>
+									<li>
+										_atom_site.label_entity_id
+										<ul>
+											<li>
+												Used to determine the entity that the rest of the _atom_site information pertains to.
+											</li>
+										</ul>
+									</li>
+								</ul>
+							</li>
+							<li>
+								_refine
+								<ul>
+									<li>
+										_refine.ls_d_res_high
+										<ul>
+											<li>
+												Used to determine the resolution of the structure in an X-ray diffraction experiment.
+											</li>
+										</ul>
+									</li>
+									<li>
+										_refine.ls_R_factor_obs
+										<ul>
+											<li>
+												Used to determine the R-value. This is the R-value measurement used when giving an upper bound on the R-value during culling.
+											</li>
+										</ul>
+									</li>
+									<li>
+										_refine.ls_R_factor_R_free
+										<ul>
+											<li>
+												Used to determine the R-free value.
+											</li>
+										</ul>
+									</li>
+								</ul>
+							</li>
+							<li>
+								_reflns
+								<ul>
+									<li>
+										_reflns.d_resolution_high
+										<ul>
+											<li>
+												Used to determine the resolution of the structure in an X-ray diffraction experiment.
+											</li>
+										</ul>
+									</li>
+								</ul>
+							</li>
+							<li>
+								_struct_ref
+								<ul>
+									<li>
+										_struct_ref.entity_id
+										<ul>
+											<li>
+												Used to determine the entity that the rest of the _struct_ref information pertains to.
+											</li>
+										</ul>
+									</li>
+									<li>
+										_struct_ref.db_name
+										<ul>
+											<li>
+												Used to determine the name of the external database linked to the entity.
+											</li>
+										</ul>
+									</li>
+									<li>
+										_struct_ref.db_code
+										<ul>
+											<li>
+												Used to determine the code which can be used to access information about the entity in the external database
+											</li>
+										</ul>
+									</li>
+								</ul>
+							</li>
+							<li>
+								_entity_src_gen
+								<ul>
+									<li>
+										_entity_src_gen.entity_id
+										<ul>
+											<li>
+												Used to determine the entity that the rest of the _entity_src_gen information pertains to.
+											</li>
+										</ul>
+									</li>
+									<li>
+										_entity_src_gen.pdbx_gene_src_scientific_name
+										<ul>
+											<li>
+												Used to determine the scientific name of the organism that the entity came from.
+											</li>
+										</ul>
+									</li>
+								</ul>
+							</li>
+							<li>
+								_entity_src_nat
+								<ul>
+									<li>
+										_entity_src_nat.entity_id
+										<ul>
+											<li>
+												Used to determine the entity that the rest of the _entity_src_nat information pertains to.
+											</li>
+										</ul>
+									</li>
+									<li>
+										_entity_src_nat.pdbx_organism_scientific
+										<ul>
+											<li>
+												Used to determine the scientific name of the organism that the entity came from.
+											</li>
+										</ul>
+									</li>
+								</ul>
+							</li>
+							<li>
+								_pdbx_entity_src_syn
+								<ul>
+									<li>
+										_pdbx_entity_src_syn.entity_id
+										<ul>
+											<li>
+												Used to determine the entity that the rest of the _pdbx_entity_src_syn information pertains to.
+											</li>
+										</ul>
+									</li>
+									<li>
+										_pdbx_entity_src_syn.organism_scientific
+										<ul>
+											<li>
+												Used to determine the scientific name of the organism that the entity came from.	
+											</li>
+										</ul>
+									</li>
+								</ul>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</p>
+		</div>
+	</body>
 </html>

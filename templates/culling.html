@@ -17,126 +17,94 @@
 		</div>
 
 		<div id="content" style="text-align: center;">
-			{% with errorMessage = get_flashed_messages() %}
-				<div id="error">
-					{% for error in errorMessage %}
-						<p align="center"><b>{{ error }}<b></p>
-					{% endfor %}
-				</div>
-			{% endwith %}
-
 			<form id="cullform" enctype="multipart/form-data" action="{{ url_for('culling') }}" method="post" onsubmit="return validateForm(this)">
 				<h2>Select Chains to Cull</h2>
 				<div id="chainInfoBox" style="float: left; width: 25%;">
-					<br><br>
-					<!-- The expected format for the chains is to have one chain ID on each line, with no other text on the line. -->
+					<br><br><br>
+					The expected input format is to have one chain identifier on each line (additional whitespace is ignored).
 					<br><br>
 				</div>
 				<div style="float: left; width: 50%; text-align: center;">
 					<b>Enter the chains you wish to cull in the box below:</b>
-					<textarea id="pastedInfo" name="pastedInfo" rows="10" cols="50" maxlength="200000" style="border:3px solid #F7730E;">{{ pastedChains }}</textarea>
+					<textarea id="pastedInfo" name="pastedInfo" rows="10" cols="50" maxlength="200000" style="border:3px solid #F7730E;"></textarea>
 				</div>
 				<br><br><br>
 				<div id="noInputsWarning" style="float: right; width: 24%; border: #FFFFFF 1px solid; font-size: 17px; display: none;">
 					You must enter at least two valid chain identifiers.
 				</div>
 				<div style="clear: both;">
-					<br>Information about the expected input format and the culling process can be found <b><a href="{{ url_for('help') }}#PDBSubsetCulling">here</a></b>.<hr>
+					<br>Information about the inputs and the culling process can be found <b><a href="{{ url_for('help') }}#PDBSubsetCulling">here</a></b>.<hr>
 				</div>
 				<h2 align="center">Select Sequence Properties</h2>
-				<table align='center' border="0" cellpadding="0">
+				<table align='center' border="0" cellpadding="0" style="border:0; font-size:0.9em;">
 					<tr>
 						<td><b>Percentage Sequence Identity:</b></td>
 						<td colspan="2">
-							<input type="text" id="pc" name="pc" value={{ pc }} size="10"/>
+							<input type="text" id="pc" name="pc" value=20 size="10"/>
 						</td>
 						<td id="SeqIdenInfo" style="color:#000000; border: #FFFFFF 1px solid;">Valid values are 5-100 inclusive.</td>
 					</tr>
 					<tr>
 						<td><b>Minimum Resolution:</b></td>
 						<td colspan="2">
-							<input type="text" id="minRes" name="minRes" value={{ minRes }} size="10"/>
+							<input type="text" id="minRes" name="minRes" value=0.0 size="10"/>
 						</td>
 						<td id="minResInfo" style="color:#000000; border: #FFFFFF 1px solid;">Must be 0 or greater, and less than max resolution.</td>
 					</tr>
 					<tr>
 						<td><b>Maximum Resolution:</b></td>
 						<td colspan="2">
-							<input type="text" id="maxRes" name="maxRes" value={{ maxRes }} size="10"/>
+							<input type="text" id="maxRes" name="maxRes" value=3.0 size="10"/>
 						</td>
 						<td id="maxResInfo" style="color:#000000; border: #FFFFFF 1px solid;">Must be greater than min resolution, and no more than 100.</td>
 					</tr>
 					<tr>
 						<td><b>Maximum R Value:</b></td>
 						<td colspan="2">
-							<input type="text" id="maxRVal" name="maxRVal" value={{ maxRVal }} size="10"/>
+							<input type="text" id="maxRVal" name="maxRVal" value=0.5 size="10"/>
 						</td>
 						<td id="RValInfo" style="color:#000000; border: #FFFFFF 1px solid;">Valid values are 0-1 inclusive.</td>
 					</tr>
 					<tr>
 						<td><b>Enforce Minimum Chain Length?</b></td>
 						<td>
-							{% if enforceMinLength %}
-								<input type="radio" id="enforceMinLengthNo" name="enforceMinLength" value="no" onclick="disableElement(document.getElementById('minLen'));"/>No
-								<input type="radio" id="enforceMinLengthYes" name="enforceMinLength" value="yes" onclick="enableElement(document.getElementById('minLen'));" checked="checked"/>Yes
-							{% else %}
-								<input type="radio" id="enforceMinLengthNo" name="enforceMinLength" value="no" onclick="disableElement(document.getElementById('minLen'));" checked="checked"/>No
-								<input type="radio" id="enforceMinLengthYes" name="enforceMinLength" value="yes" onclick="enableElement(document.getElementById('minLen'));"/>Yes
-							{% endif %}
+							<input type="radio" id="enforceMinLengthNo" name="enforceMinLength" value="no" onclick="disableElement(document.getElementById('minLen'));" checked="checked"/>No
+							<input type="radio" id="enforceMinLengthYes" name="enforceMinLength" value="yes" onclick="enableElement(document.getElementById('minLen'));"/>Yes
 						</td>
 						<td>
-							<input id="minLen" type="text" name="minLen" value={{ minLen }} size="10" disabled style="background-color: #222222;"/>
+							<input id="minLen" type="text" name="minLen" value=40 size="10" disabled style="background-color: #222222;"/>
 						</td>
 						<td id="minLengthInfo" style="color:#000000; border: #FFFFFF 1px solid;">Must be greater than 0, and less than max length.</td>
 					</tr>
 					<tr>
 						<td><b>Enforce Maximum Chain Length?</b></td>
 						<td>
-							{% if enforceMaxLength %}
-								<input type="radio" id="enforceMaxLengthNo" name="enforceMaxLength" value="no" onclick="disableElement(document.getElementById('maxLen'));"/>No
-								<input type="radio" id="enforceMaxLengthYes" name="enforceMaxLength" value="yes" onclick="enableElement(document.getElementById('maxLen'));" checked="checked"/>Yes
-							{% else %}
-								<input type="radio" id="enforceMaxLengthNo" name="enforceMaxLength" value="no" onclick="disableElement(document.getElementById('maxLen'));" checked="checked"/>No
-								<input type="radio" id="enforceMaxLengthYes" name="enforceMaxLength" value="yes" onclick="enableElement(document.getElementById('maxLen'));"/>Yes
-							{% endif %}
+							<input type="radio" id="enforceMaxLengthNo" name="enforceMaxLength" value="no" onclick="disableElement(document.getElementById('maxLen'));" checked="checked"/>No
+							<input type="radio" id="enforceMaxLengthYes" name="enforceMaxLength" value="yes" onclick="enableElement(document.getElementById('maxLen'));"/>Yes
 						</td>
 						<td>
-							<input id="maxLen" type="text" name="maxLen" value={{ maxLen }} size="10" disabled style="background-color: #222222;"/>
+							<input id="maxLen" type="text" name="maxLen" value=10000 size="10" disabled style="background-color: #222222;"/>
 						</td>
 						<td id="maxLengthInfo" style="color:#000000; border: #FFFFFF 1px solid;">Must be greater than 0, and more than min length.</td>
 					</tr>
 					<tr>
 						<td><b>Include non-X-ray entries?</b></td>
 						<td>
-							{% if includeNonXray %}
-								<input type="radio" name="includeNonXray" value="no"/>No
-								<input type="radio" name="includeNonXray" value="yes" checked="checked"/>Yes
-							{% else %}
-								<input type="radio" name="includeNonXray" value="no" checked="checked"/>No
-								<input type="radio" name="includeNonXray" value="yes"/>Yes
-							{% endif %}
+							<input type="radio" name="includeNonXray" value="no" checked="checked"/>No
+							<input type="radio" name="includeNonXray" value="yes"/>Yes
 						</td>
 					</tr>
 					<tr>
 						<td><b>Include entries with only alpha carbons?</b></td>
 						<td>
-							{% if includeAlphaCarbon %}
-								<input type="radio" name="includeAlphaCarbon" value="no"/>No
-								<input type="radio" name="includeAlphaCarbon" value="yes" checked="checked"/>Yes
-							{% else %}
-								<input type="radio" name="includeAlphaCarbon" value="no" checked="checked"/>No
-								<input type="radio" name="includeAlphaCarbon" value="yes"/>Yes
-							{% endif %}
+							<input type="radio" name="includeAlphaCarbon" value="no" checked="checked"/>No
+							<input type="radio" name="includeAlphaCarbon" value="yes"/>Yes
 						</td>
 					</tr>
 					<tr>
 						<td><b>Email address to send results to:</b></td>
 						<td colspan="2">
-							{% if emailProvided %}
-								<input type="text" id="email" name="email" value={{ email }} size="25"/>
-							{% else %}
-								<input type="text" id="email" name="email" size="25"/>
-							{% endif %}
+							<input type="text" id="email" name="email" size="25"/>
 						</td>
 						<td id="emailInfo" style="color:#000000; border: #FFFFFF 1px solid;">You must enter a valid email address.</td>
 					</tr>
@@ -147,7 +115,5 @@
 				</p>
 			</form>
 		</div>
-
-		<div id="footer"><p>Last updated January 16, 2014.</p></div>
 	</body>
 </html>
