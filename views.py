@@ -11,6 +11,8 @@ from google.appengine.ext import ndb
 
 from flask import render_template, request, redirect, Response, flash
 
+import leafcull
+
 
 def home():
     """Render the home page."""
@@ -179,9 +181,10 @@ def cull_worker():
         cullJob.put()
 
         # Perform culling.
+        removedChains = leafcull.main(similarities)
 
         # Record the results.
-        cullJob.nonredundant = str(uniqueGroups)
+        cullJob.nonredundant = '\n'.join([uniqueGroups[i] for i in similarityGroups if not uniqueGroups[i] in removedChains])
         cullJob.put()
 
     return ''
