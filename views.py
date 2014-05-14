@@ -156,23 +156,32 @@ def cull_worker():
     similarityQuery = similarityQuery.filter(models.Similarity.chainGroupingB.IN(similarityGroups))
     similarityQuery = similarityQuery.filter(models.Similarity.similarity >= requestedSimilarity)
 
-    # Go through the similarity query, and determine whether culling can be carried out.
+    # Determine whether culling can be carried out.
     if maxChainsExceeded:
         # Too many chains to perform culling.
         cullJob.similarities = ''
         for i in similarityQuery:
             cullJob.similarities += uniqueGroups[i.chainGroupingA] + '\t' + uniqueGroups[i.chainGroupingB] + '\n'
+        cullJob.nonredundant = ''
+        cullJob.put()
     else:
-        # Culling can be attempted.
-        similarities = [[], []]
+        # Determine similarities between similarity groups.
+        similarities = dict((uniqueGroups[i], set([])) for i in similarityGroups)
         for i in similarityQuery:
-            similarities[0].append(uniqueGroups[i.chainGroupingA])
-            similarities[1].append(uniqueGroups[i.chainGroupingB])
-        cullJob.similarities = '\n'.join([i + '\t' + j for i, j in zip(similarities[0], similarities[1])])
-        # Perform culling.
-    cullJob.put()
+            chainA = uniqueGroups[i.chainGroupingA]
+            chainB = uniqueGroups[i.chainGroupingB]
+            similarities[chainA].add(chainB)
+            similarities[chainB].add(chainA)
 
-    # Record the results.
-    cullJob.nonredundant = str(uniqueGroups)
-    cullJob.put()
+        # Record similarities and base non-redundant set.
+        cullJob.nonredundant = ''
+        cullJob.similarities = '\n'.join([i + '\t' + str(similarities[i]) for i in similarities])
+        cullJob.put()
+
+        # Perform culling.
+
+        # Record the results.
+        cullJob.nonredundant = str(uniqueGroups)
+        cullJob.put()
+
     return ''
