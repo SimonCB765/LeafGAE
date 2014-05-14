@@ -48,24 +48,6 @@
 				</ul>
 			</p>
 			<hr>
-			<a name="ResultsDescription"></a>
-			<h2>Description of Results File Format</h2>
-			<p>
-				See <b><a href="{{ url_for('help') }}#DataCollection">here</a></b> for more information about the extraction of the data from the PDB.<br>
-				<ul>
-					<li>A FASTA format file of the chains in the non-redundant dataset.</li>
-					<li>Each chain is represented by two consecutive lines in the file.</li>
-					<li>The first line is an identifier line for the chain. The second line contains the sequence of the chain.</li>
-					<li>
-						The identifier line begins with a '>', and the values (from left to right) are: chain ID, chain length, resolution, R-value,
-						alpha carbon only status and non-X-ray status.
-					</li>
-					<li>Tabs separate the values on the identifier line.</li>
-					<li>Alpha carbon only status is 'no' if the chain structure is not purely composed of alpha carbon atoms.</li>
-					<li>Non-X-ray status is 'no' if the chain's structure was determined using X-ray diffraction.</li>
-				</ul>
-			</p>
-			<hr>
 			<a name="PreculledDescription"></a>
 			<h2>Description of Pre-culled List Format</h2>
 			<p>

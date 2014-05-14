@@ -18,14 +18,13 @@ class CullJob(ndb.Model):
     nonredundant = ndb.TextProperty()  # The nonredundant chains returned by the culling process. The string takes the form 'chainA\nchainB\nchainC.....'.
     email = ndb.StringProperty(required=True)  # The email address supplied.
 
-class Chains(ndb.Model):
+class Chain(ndb.Model):
     """The information needed for each chain"""
 
     chain = ndb.StringProperty(required=True)  # The chain id for the chain. Also used as the unique id for the entity.
     resolution = ndb.FloatProperty(required=True)  # The resolution of the chain's structure.
     rVal = ndb.FloatProperty(required=True)  # The r value of the chain's structure.
-    sequence = ndb.TextProperty(required=True)  # The chain's sequence.
-    sequenceLength = ndb.ComputedProperty(lambda self: len(self.sequence))  # The number of amino acids in the chain's sequence.
+    sequenceLength = ndb.IntegerProperty(required=True)  # The number of amino acids in the chain's sequence.
     nonXRay = ndb.BooleanProperty(required=True)  # Whether the chain's structure was determined using a means other than xray crystallography.
     alphaCarbonOnly = ndb.BooleanProperty(required=True)  # Whether the chain's structure contains only alpha carbons.
     representativeChainGrouping = ndb.StringProperty(required=True)  # The id of the chain grouping that represents all chains with the same sequence as this
