@@ -25,6 +25,11 @@ handlers:
   static_files: static/robots.txt
   upload: static/robots.txt
 
+# Add the remote_api in a custom path.
+- url: /admin/remote_api.*
+  script: google.appengine.ext.remote_api.handler.application
+  login: admin
+
 # Restrict access to the admin section of the website
 - url: /admin/.*
   script: main.app

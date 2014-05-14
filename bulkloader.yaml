@@ -1,0 +1,56 @@
+python_preamble:
+- import: google.appengine.ext.bulkload.transform
+- import: google.appengine.ext.ndb
+- import: models
+
+# List of all the transformer classes.
+transformers:
+- kind: models.Chain
+  connector: csv
+  connector_options:
+    columns: from_header
+    # TSV is specified using an extra parameter of the Python csv module.
+    import_options:
+      dialect: excel-tab
+    export_options:
+      dialect: excel-tab
+  property_map:
+    - property: __key__
+      external_name: Chain
+    - property: chain
+      external_name: Chain
+    - property: resolution
+      external_name: Res
+      import_transform: float
+    - property: rVal
+      external_name: RVal
+      import_transform: float
+    - property: sequenceLength
+      external_name: SeqLen
+      import_transform: int
+    - property: nonXRay
+      external_name: NonXRay
+      import_transform: "lambda i: True if i == 'yes' else False"
+    - property: alphaCarbonOnly
+      external_name: AlphaCarbonOnly
+      import_transform: "lambda i: True if i == 'yes' else False"
+    - property: representativeChainGrouping
+      external_name: ReprGroup
+
+- kind: models.Similarity
+  connector: csv
+  connector_options:
+    columns: from_header
+    # TSV is specified using an extra parameter of the Python csv module.
+    import_options:
+      dialect: excel-tab
+    export_options:
+      dialect: excel-tab
+  property_map:
+    - property: chainGroupingA
+      external_name: ChainGroupingA
+    - property: chainGroupingB
+      external_name: ChainGroupingB
+    - property: similarity
+      external_name: Similarity
+      import_transform: float
