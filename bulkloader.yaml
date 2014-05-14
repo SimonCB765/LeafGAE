@@ -5,7 +5,7 @@ python_preamble:
 
 # List of all the transformer classes.
 transformers:
-- kind: models.Chain
+- kind: Chain
   connector: csv
   connector_options:
     columns: from_header
@@ -37,7 +37,7 @@ transformers:
     - property: representativeChainGrouping
       external_name: ReprGroup
 
-- kind: models.Similarity
+- kind: Similarity
   connector: csv
   connector_options:
     columns: from_header
@@ -54,3 +54,4 @@ transformers:
     - property: similarity
       external_name: Similarity
       import_transform: float
+      export_transform: str
