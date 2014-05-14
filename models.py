@@ -7,8 +7,8 @@ class CullJob(ndb.Model):
     minRes = ndb.FloatProperty(required=True)  # The requested minimum resolution permissible.
     maxRes = ndb.FloatProperty(required=True)  # The requested maximum resolution permissible.
     maxRVal = ndb.FloatProperty(required=True)  # The requested maximum r value permissible.
-    minLen = ndb.IntegerProperty(required=True, default=-1)  # The requested minimum sequence length permissible.
-    maxLen = ndb.IntegerProperty(required=True, default=-1)  # The requested minimum sequence length permissible.
+    minLen = ndb.IntegerProperty(required=True)  # The requested minimum sequence length permissible.
+    maxLen = ndb.IntegerProperty(required=True)  # The requested minimum sequence length permissible.
     includeNonXray = ndb.BooleanProperty(required=True, default=True) # Whether chains with a structure determined by a means other than xray diffraction
                                                                       # should be included.
     includeAlphaCarbon = ndb.BooleanProperty(required=True, default=True) # Whether chains with a structure consisting solely of alpha carbons should be
@@ -16,6 +16,7 @@ class CullJob(ndb.Model):
     requestDate = ndb.DateTimeProperty(auto_now=True)  # The date when the request was made.
     chains = ndb.TextProperty(required=True)  # The chains supplied by the user. The string takes the form 'chainA\nchainB\nchainC.....'.
     nonredundant = ndb.TextProperty()  # The nonredundant chains returned by the culling process. The string takes the form 'chainA\nchainB\nchainC.....'.
+    similarities = ndb.TextProperty()  # The similarities between chains. A row in the string takes the form 'chainA\tchainB\n.....'.
     email = ndb.StringProperty(required=True)  # The email address supplied.
 
 class Chain(ndb.Model):
