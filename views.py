@@ -146,18 +146,30 @@ def cull_worker():
                                                                                                # representative chain (value).
     similarityGroups = uniqueGroups.keys()  # Unique similarity groups.
 
-    # Extract the similarities for the unique similarity group.
+    # Define the maximum number of unique similarity groups that can be used for culling.
+    maxChains = 2000
+    maxChainsExceeded = len(similarityGroups) > maxChains
+
+    # Setup the query for extracting the similarities for the unique similarity group.
     similarityQuery = models.Similarity.query()
     similarityQuery = similarityQuery.filter(models.Similarity.chainGroupingA.IN(similarityGroups))
     similarityQuery = similarityQuery.filter(models.Similarity.chainGroupingB.IN(similarityGroups))
     similarityQuery = similarityQuery.filter(models.Similarity.similarity >= requestedSimilarity)
-    similarities = [[], []]
-    for i in similarityQuery:
-        similarities[0].append(uniqueGroups[i.chainGroupingA])
-        similarities[1].append(uniqueGroups[i.chainGroupingB])
 
-    # Record the chains that are too similar.
-    cullJob.similarities = '\n'.join([i + '\t' + j for i, j in zip(similarities[0], similarities[1])])
+    # Go through the similarity query, and determine whether culling can be carried out.
+    if maxChainsExceeded:
+        # Too many chains to perform culling.
+        cullJob.similarities = ''
+        for i in similarityQuery:
+            cullJob.similarities += uniqueGroups[i.chainGroupingA] + '\t' + uniqueGroups[i.chainGroupingB] + '\n'
+    else:
+        # Culling can be attempted.
+        similarities = [[], []]
+        for i in similarityQuery:
+            similarities[0].append(uniqueGroups[i.chainGroupingA])
+            similarities[1].append(uniqueGroups[i.chainGroupingB])
+        cullJob.similarities = '\n'.join([i + '\t' + j for i, j in zip(similarities[0], similarities[1])])
+        # Perform culling.
     cullJob.put()
 
     # Record the results.
