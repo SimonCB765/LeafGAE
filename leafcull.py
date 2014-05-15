@@ -4,12 +4,14 @@ Created on 28 Mar 2011
 @author: Simon Bull
 '''
 
+import collections
+
 def main(adjList):
     """The method by which the Leaf algorithm determines which nodes to remove from the graph.
 
     @param adjList: An adjacency list representation of the protein similarity graph.
     @type adjList : dictionary
-	@return: The nodes that should be removed.
+    @return: The nodes that should be removed.
 
     """
 
@@ -19,24 +21,20 @@ def main(adjList):
         return removeList
 
     # Determine number of neighbours for each node.
-    neighbours = {}
+    neighbours = collections.defaultdict(set)
     for i in adjList:
         numNeighbours = len(adjList[i])
-        if neighbours.has_key(numNeighbours):
-            neighbours[numNeighbours].add(i)
-        else:
-            neighbours[numNeighbours] = set([i])
+        neighbours[numNeighbours].add(i)
     # Fill in the blank keys.
-    neighbourKeys = neighbours.keys()
-    for i in set(range(max(neighbourKeys))) - set(neighbourKeys):
-        neighbours[i] = set([])
+    for i in set(range(max(neighbours))) - set(neighbours):
+        neighbours[i]  # Defaultdict automatically creates an empty set here.
 
     while True:
         # Determine the maximum number of neighbours.
         maxNeighbours = max(neighbours)
-        while neighbours[maxNeighbours] == set([]):
+        while maxNeighbours > 0 and (not neighbours[maxNeighbours]):
             del neighbours[maxNeighbours]
-            maxNeighbours = max(neighbours)
+            maxNeighbours -= 1
 
         # If there are no nodes with neighbours then exit.
         if maxNeighbours == 0:
@@ -51,22 +49,23 @@ def main(adjList):
                 if neighboursOfInterest.intersection(*[adjList[j].union([j]) for j in neighboursOfInterest]) == neighboursOfInterest:
                     # i's neighbours are all connected to one another, and therefore i participates in a clique with all of its neighbours where
                     # it is connected only to nodes in the clique.
-                    neighbours[nClique] -= set([i])  # Node i no longer has nClique neighbours.
-                    neighbours[0] |= set([i])  # Node i now has no neighbours.
-                    toRemove = [j for j in adjList[i]]  # Make a duplicate to prevent Set changed size during iteration errors.
-                    for j in toRemove:
-                        # Remove all of node i's neighbours.
-                        removeList.append(j)
-                        for k in adjList[j]:
-                            # Update each of the removed node's neighbours.
-                            numNeighbours = len(adjList[k])
-                            neighbours[numNeighbours] -= set([k])
-                            neighbours[numNeighbours - 1] |= set([k])
-                            adjList[k].remove(j)
-                        # Update the adjacency list to reflect the removals.
+                    toRemove = set(adjList[i])  # Make a duplicate to prevent Set changed size during iteration errors.
+                    removeList.extend(toRemove)  # Mark all the removed nodes as removed.
+                    neighbours[nClique].remove(i)  # Node i no longer has nClique neighbours.
+                    neighbours[0].add(i)  # Node i now has no neighbours.
+                    adjList[i] = set([])  # Update the adjacency list to reflect the fact that i has no neighbours.
+                    neighboursOfRemoved = set([k for j in toRemove for k in adjList[j]])
+                    for j in neighboursOfRemoved:
+                        neighboursRemoved = adjList[j].intersection(toRemove)
                         numNeighbours = len(adjList[j])
-                        neighbours[numNeighbours] -= set([j])
-                        neighbours[0] |= set([j])
+                        neighbours[numNeighbours].remove(j)
+                        neighbours[numNeighbours - len(neighboursRemoved)].add(j)
+                        adjList[j] -= neighboursRemoved
+                    # Update the adjacency list to reflect the removal of the nodes in toRemove.
+                    for j in toRemove:
+                        numNeighbours = len(adjList[j])
+                        neighbours[numNeighbours].remove(j)
+                        neighbours[0].add(j)
                         adjList[j] = set([])
                     nClique = 1
                     break
@@ -79,9 +78,9 @@ def main(adjList):
         ########################################
         # Re-calculate this, as it may have changed since it was last calculated.
         maxNeighbours = max(neighbours)
-        while neighbours[maxNeighbours] == set([]):
+        while maxNeighbours > 0 and (not neighbours[maxNeighbours]):
             del neighbours[maxNeighbours]
-            maxNeighbours = max(neighbours)
+            maxNeighbours -= 1
 
         # If there are no nodes with neighbours then exit.
         if maxNeighbours == 0:
@@ -105,10 +104,10 @@ def main(adjList):
         # Update the list of neighbours for each node that toRemove is adjacent to.
         for i in adjList[toRemove]:
             numNeighbours = len(adjList[i])
-            neighbours[numNeighbours] -= set([i])
-            neighbours[numNeighbours - 1] |= set([i])
+            neighbours[numNeighbours].remove(i)
+            neighbours[numNeighbours - 1].add(i)
             adjList[i].remove(toRemove)
         # Update the adjacency list to reflect the removal of to remove.
         adjList[toRemove] = set([])
-        neighbours[maxNeighbours] -= set([toRemove])
-        neighbours[0] |= set([toRemove])
+        neighbours[maxNeighbours].remove(toRemove)
+        neighbours[0].add(toRemove)

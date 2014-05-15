@@ -16,7 +16,6 @@ class CullJob(ndb.Model):
     requestDate = ndb.DateTimeProperty(auto_now=True)  # The date when the request was made.
     chains = ndb.TextProperty(required=True)  # The chains supplied by the user. The string takes the form 'chainA\nchainB\nchainC.....'.
     nonredundant = ndb.TextProperty()  # The nonredundant chains returned by the culling process. The string takes the form 'chainA\nchainB\nchainC.....'.
-    similarities = ndb.TextProperty()  # The similarities between chains. A row in the string takes the form 'chainA\tchainB\n.....'.
     email = ndb.StringProperty(required=True)  # The email address supplied.
 
 class Chain(ndb.Model):

@@ -8,10 +8,20 @@ import models
 from google.appengine.api import taskqueue
 from google.appengine.ext import blobstore
 from google.appengine.ext import ndb
+from google.appengine.runtime import DeadlineExceededError
 
-from flask import render_template, request, redirect, Response, flash
+import logging
+
+from flask import render_template, request, redirect, Response
 
 import leafcull
+
+
+MAXCHAINS = 500
+SUCCESSEMAIL = 'Your request successfully completed. You can find your results here: '
+FAILEMAIL = ('Your request could not be completed in the alloted time. Please either submit you chains as multiple jobs (each of no more than ' +
+            str(MAXCHAINS) + ' chains), or cull your chains using the downloadable Leaf implementation.')
+NOCHAINSEMAIL = ''
 
 
 def home():
@@ -90,7 +100,7 @@ def culling():
             minLen = request.form['minLen']
         enforceMaxLength = request.form['enforceMaxLength']
         maxLen = None
-        if enforceMinLength == 'yes':
+        if enforceMaxLength == 'yes':
             maxLen = request.form['maxLen']
         includeNonXray = True if request.form['includeNonXray'] == 'yes' else False
         includeAlphaCarbon = True if request.form['includeAlphaCarbon'] == 'yes' else False
@@ -119,72 +129,73 @@ def culling():
 def cull_worker():
     """Perform the culling."""
 
-    # Get the user request data.
+    logging.getLogger().setLevel(logging.DEBUG)
     cullJobID = int(request.form['id'])  # The ID of the CullJob request.
-    cullJob = models.CullJob.get_by_id(cullJobID)  # The CullJob entity.
-    requestedSimilarity = cullJob.similarity
-    requestedMinRes = cullJob.minRes
-    requestedMaxRes = cullJob.maxRes
-    requestedMaxRVal = cullJob.maxRVal
-    requestedMinLen = cullJob.minLen
-    requestedMaxLen = cullJob.maxLen
-    requestedIncludeNonXRay = cullJob.includeNonXray
-    requestedIncludeAlphaCarbon = cullJob.includeAlphaCarbon
-    chainKeyNames = list(set([i.strip() for i in (cullJob.chains).split('\n')]))  # The chains submitted by the user.
-    chainEntities = ndb.get_multi([ndb.Key('Chain', i) for i in chainKeyNames])  # The chain entities of the submitted chains.
+    try:
+        # Get the user request data.
+        cullJob = models.CullJob.get_by_id(cullJobID)  # The CullJob entity.
+        requestedSimilarity = cullJob.similarity
+        requestedMinRes = cullJob.minRes
+        requestedMaxRes = cullJob.maxRes
+        requestedMaxRVal = cullJob.maxRVal
+        requestedMinLen = cullJob.minLen
+        requestedMaxLen = cullJob.maxLen
+        requestedIncludeNonXRay = cullJob.includeNonXray
+        requestedIncludeAlphaCarbon = cullJob.includeAlphaCarbon
+        userEmail = cullJob.email
+        chainKeyNames = list(set([i.strip() for i in (cullJob.chains).split('\n')]))  # The chains submitted by the user.
+        chainEntities = ndb.get_multi([ndb.Key('Chain', i) for i in chainKeyNames])  # The chain entities of the submitted chains.
 
-    # Determine the entries that meet the criteria supplied by the user. A chain is only accepted if its resolution is between the min and max
-    # requested resolution, its r value is no greater than the requested maximum r value, its sequence length is within the requested seuence length
-    # range (or no range was requested), it does not have a non-xray structure/non-xray structures are allowed and its structure does not only consist
-    # of alpha carbons/alpha carbon only structures are being permitted.
-    goodChainEntities = [i for i in chainEntities if (i.resolution >= requestedMinRes) and (i.resolution <= requestedMaxRes) and
-                         (i.rVal <= requestedMaxRVal) and (i.sequenceLength >= requestedMinLen) and
-                         (i.sequenceLength <= requestedMaxLen or requestedMaxLen == 0) and (i.nonXRay <= requestedIncludeNonXRay) and
-                         (i.alphaCarbonOnly <= requestedIncludeAlphaCarbon)]
+        if not chainEntities[0]:
+            # If there were no valid chains submitted.
+            cullJob.nonredundant = 'No valid chains were submitted'
+            cullJob.put()
+            return ''
 
-    # Determine the unique similarity groups of the chains that meet the criteria.
-    similarityGroups = [i.representativeChainGrouping for i in goodChainEntities]  # The similarity groups of the submitted chains.
-    uniqueGroups = dict((i[0], i[1].chain) for i in zip(similarityGroups, goodChainEntities))  # Mapping of each unique similarity group (key) to its
-                                                                                               # representative chain (value).
-    similarityGroups = uniqueGroups.keys()  # Unique similarity groups.
+        # Determine the entries that meet the criteria supplied by the user. A chain is only accepted if its resolution is between the min and max
+        # requested resolution, its r value is no greater than the requested maximum r value, its sequence length is within the requested seuence length
+        # range (or no range was requested), it does not have a non-xray structure/non-xray structures are allowed and its structure does not only consist
+        # of alpha carbons/alpha carbon only structures are being permitted.
+        goodChainEntities = [i for i in chainEntities if (i.resolution >= requestedMinRes) and (i.resolution <= requestedMaxRes) and
+                             (i.rVal <= requestedMaxRVal) and (i.sequenceLength >= requestedMinLen) and
+                             (i.sequenceLength <= requestedMaxLen or requestedMaxLen == 0) and (i.nonXRay <= requestedIncludeNonXRay) and
+                             (i.alphaCarbonOnly <= requestedIncludeAlphaCarbon)]
 
-    # Define the maximum number of unique similarity groups that can be used for culling.
-    maxChains = 2000
-    maxChainsExceeded = len(similarityGroups) > maxChains
+        # Determine the unique similarity groups of the chains that meet the criteria.
+        similarityGroups = [i.representativeChainGrouping for i in goodChainEntities]  # The similarity groups of the submitted chains.
+        uniqueGroups = dict((i[0], i[1].chain) for i in zip(similarityGroups, goodChainEntities))  # Mapping of each unique similarity group (key) to its
+                                                                                                   # representative chain (value).
+        similarityGroups = uniqueGroups.keys()  # Unique similarity groups.
 
-    # Setup the query for extracting the similarities for the unique similarity group.
-    similarityQuery = models.Similarity.query()
-    similarityQuery = similarityQuery.filter(models.Similarity.chainGroupingA.IN(similarityGroups))
-    similarityQuery = similarityQuery.filter(models.Similarity.chainGroupingB.IN(similarityGroups))
-    similarityQuery = similarityQuery.filter(models.Similarity.similarity >= requestedSimilarity)
+        # Determine whether culling can be carried out.
+        if len(similarityGroups) <= MAXCHAINS:
+            # Setup the query for extracting the similarities for the unique similarity group.
+            similarityQuery = models.Similarity.query()
+            similarityQuery = similarityQuery.filter(models.Similarity.chainGroupingA.IN(similarityGroups))
+            similarityQuery = similarityQuery.filter(models.Similarity.chainGroupingB.IN(similarityGroups))
+            similarityQuery = similarityQuery.filter(models.Similarity.similarity >= requestedSimilarity)
 
-    # Determine whether culling can be carried out.
-    if maxChainsExceeded:
-        # Too many chains to perform culling.
-        cullJob.similarities = ''
-        for i in similarityQuery:
-            cullJob.similarities += uniqueGroups[i.chainGroupingA] + '\t' + uniqueGroups[i.chainGroupingB] + '\n'
-        cullJob.nonredundant = ''
-        cullJob.put()
-    else:
-        # Determine similarities between similarity groups.
-        similarities = dict((uniqueGroups[i], set([])) for i in similarityGroups)
-        for i in similarityQuery:
-            chainA = uniqueGroups[i.chainGroupingA]
-            chainB = uniqueGroups[i.chainGroupingB]
-            similarities[chainA].add(chainB)
-            similarities[chainB].add(chainA)
+            # Determine similarities between similarity groups.
+            similarities = dict((uniqueGroups[i], set([])) for i in similarityGroups)
+            for i in similarityQuery:
+                chainA = uniqueGroups[i.chainGroupingA]
+                chainB = uniqueGroups[i.chainGroupingB]
+                similarities[chainA].add(chainB)
+                similarities[chainB].add(chainA)
 
-        # Record similarities and base non-redundant set.
-        cullJob.nonredundant = ''
-        cullJob.similarities = '\n'.join([i + '\t' + str(similarities[i]) for i in similarities])
-        cullJob.put()
+            # Perform culling.
+            removedChains = leafcull.main(similarities)
 
-        # Perform culling.
-        removedChains = leafcull.main(similarities)
-
-        # Record the results.
-        cullJob.nonredundant = '\n'.join([uniqueGroups[i] for i in similarityGroups if not uniqueGroups[i] in removedChains])
-        cullJob.put()
+            # Record the results.
+            cullJob.nonredundant = '\n'.join([uniqueGroups[i] for i in similarityGroups if not uniqueGroups[i] in removedChains])
+            cullJob.put()
+        else:
+            # Too many chains to cull.
+            cullJob.nonredundant = FAILEMAIL
+            cullJob.put()
+    except DeadlineExceededError:
+        logging.error('CullJob - ' + str(cullJobID) + ' exceeded the time limit of 10 minutes.')
+    except:
+        logging.exception('CullJob - ' + str(cullJobID) + ' broke down.')
 
     return ''
