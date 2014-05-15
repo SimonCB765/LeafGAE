@@ -25,9 +25,6 @@ app.add_url_rule('/serve_list/<blobKey>', 'serve_list', view_func=views.serve_li
 # Serve lists of plaintext chains.
 app.add_url_rule('/display_chains/<cullID>/<nonredundant>', 'display_chains', view_func=views.display_chains)
 
-# Task Queue URL for performing culling.
-app.add_url_rule('/admin/cull_worker', 'cull_worker', view_func=views.cull_worker, methods=['POST'])
-
 # Admin culled list upload pages.
 app.add_url_rule('/admin/cull_upload', 'cull_upload_form', view_func=views.cull_upload_form, methods=['POST', 'GET'])
 app.add_url_rule('/admin/cull_upload/handler', 'cull_upload_handler', view_func=views.cull_upload_handler, methods=['POST', 'GET'])

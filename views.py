@@ -5,8 +5,8 @@ import cgi
 from main import app
 import models
 
-from google.appengine.api import taskqueue
 from google.appengine.ext import blobstore
+from google.appengine.ext import deferred
 from google.appengine.ext import ndb
 from google.appengine.runtime import DeadlineExceededError
 
@@ -21,7 +21,7 @@ MAXCHAINS = 500
 SUCCESSEMAIL = 'Your request successfully completed. You can find your results here: '
 FAILEMAIL = ('Your request could not be completed in the alloted time. Please either submit you chains as multiple jobs (each of no more than ' +
             str(MAXCHAINS) + ' chains), or cull your chains using the downloadable Leaf implementation.')
-NOCHAINSEMAIL = ''
+NOCHAINSEMAIL = 'No valid PDB chains wewre submitted'
 
 
 def home():
@@ -107,30 +107,39 @@ def culling():
         emailAddress = request.form['email']
 
         # Process the chains.
-        chunkedChains = [i.strip() for i in submittedChains.split('\n')]
+        chunkedChains = set([i.strip() for i in submittedChains.split('\n')])
 
         # Save the cull job.
         newCullJob = models.CullJob(similarity=float(sequenceIdentity), minRes=float(minRes), maxRes=float(maxRes), maxRVal=float(maxRVal),
                                     minLen=0 if not minLen else int(minLen), maxLen=0 if not maxLen else int(maxLen), includeNonXray=includeNonXray,
-                                    includeAlphaCarbon=includeAlphaCarbon, chains='\n'.join(chunkedChains), email=emailAddress)
+                                    includeAlphaCarbon=includeAlphaCarbon, chains='\n'.join(chunkedChains), email=emailAddress,
+                                    nonredundant='Culling not completed.')
         newCullJobKey = newCullJob.put()
         newCullJobID = newCullJobKey.id()
 
-        # Initiate the culling asynchronously.
-        taskqueue.add(url='/admin/cull_worker', params={'id' : newCullJobID})
+        # Get the entities corresponding to the chain IDs submitted.
+        chainKeyNames = list(chunkedChains)  # The chains submitted by the user.
+        chainEntities = ndb.get_multi([ndb.Key('Chain', i) for i in chainKeyNames])  # The chain entities of the submitted chains.
 
-        # Put up the successful submission page.
-        return render_template('culling_success.html', sequenceIdentity=sequenceIdentity, minRes=minRes, maxRes=maxRes, maxRVal=maxRVal,
-                               minLen=minLen or 'Not Enforced', maxLen=maxLen or 'Not Enforced', includeNonXray='Yes' if includeNonXray else 'No',
-                               includeAlphaCarbon='Yes' if includeAlphaCarbon else 'No', email=emailAddress)
+        # Determine whether culling should be started.
+        if not chainEntities[0]:
+            # If no valid chains were submitted.
+            return 'No valid chains were submitted. Please back up and try again.'
+        else:
+            # Initiate the culling asynchronously.
+            deferred.defer(cull_worker, newCullJobID, chainEntities)
+
+            # Put up the successful submission page.
+            return render_template('culling_success.html', sequenceIdentity=sequenceIdentity, minRes=minRes, maxRes=maxRes, maxRVal=maxRVal,
+                                   minLen=minLen or 'Not Enforced', maxLen=maxLen or 'Not Enforced', includeNonXray='Yes' if includeNonXray else 'No',
+                                   includeAlphaCarbon='Yes' if includeAlphaCarbon else 'No', email=emailAddress)
     elif request.method == 'GET':
         return render_template('culling.html')
 
-def cull_worker():
+def cull_worker(cullJobID, chainEntities):
     """Perform the culling."""
 
     logging.getLogger().setLevel(logging.DEBUG)
-    cullJobID = int(request.form['id'])  # The ID of the CullJob request.
     try:
         # Get the user request data.
         cullJob = models.CullJob.get_by_id(cullJobID)  # The CullJob entity.
@@ -143,14 +152,6 @@ def cull_worker():
         requestedIncludeNonXRay = cullJob.includeNonXray
         requestedIncludeAlphaCarbon = cullJob.includeAlphaCarbon
         userEmail = cullJob.email
-        chainKeyNames = list(set([i.strip() for i in (cullJob.chains).split('\n')]))  # The chains submitted by the user.
-        chainEntities = ndb.get_multi([ndb.Key('Chain', i) for i in chainKeyNames])  # The chain entities of the submitted chains.
-
-        if not chainEntities[0]:
-            # If there were no valid chains submitted.
-            cullJob.nonredundant = 'No valid chains were submitted'
-            cullJob.put()
-            return ''
 
         # Determine the entries that meet the criteria supplied by the user. A chain is only accepted if its resolution is between the min and max
         # requested resolution, its r value is no greater than the requested maximum r value, its sequence length is within the requested seuence length
