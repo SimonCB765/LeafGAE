@@ -20,8 +20,9 @@
 			<form id="cullform" enctype="multipart/form-data" action="{{ url_for('culling') }}" method="post" onsubmit="return validateForm(this)">
 				<h2>Select Chains to Cull</h2>
 				<div id="chainInfoBox" style="float: left; width: 25%;">
-					<br><br><br>
-					The expected input format is to have one chain identifier on each line (additional whitespace is ignored).
+					<br><br>
+					The expected input format is to have one chain identifier on each line (additional whitespace is ignored). A maximum of {{ maxChains }}
+					chains can be submitted at once.
 					<br><br>
 				</div>
 				<div style="float: left; width: 50%; text-align: center;">

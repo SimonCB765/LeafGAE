@@ -21,6 +21,7 @@ MAXCHAINS = 500
 SUCCESSEMAIL = 'Your request successfully completed. You can find your results here: '
 FAILEMAIL = ('Your request could not be completed in the alloted time. Please either submit you chains as multiple jobs (each of no more than ' +
             str(MAXCHAINS) + ' chains), or cull your chains using the downloadable Leaf implementation.')
+# add something ot fial email like: if you think your thingy should have completed then contact me
 NOCHAINSEMAIL = 'No valid PDB chains wewre submitted'
 
 
@@ -134,7 +135,7 @@ def culling():
                                    minLen=minLen or 'Not Enforced', maxLen=maxLen or 'Not Enforced', includeNonXray='Yes' if includeNonXray else 'No',
                                    includeAlphaCarbon='Yes' if includeAlphaCarbon else 'No', email=emailAddress)
     elif request.method == 'GET':
-        return render_template('culling.html')
+        return render_template('culling.html', maxChains=MAXCHAINS)
 
 def cull_worker(cullJobID, chainEntities):
     """Perform the culling."""
