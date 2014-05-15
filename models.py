@@ -15,8 +15,10 @@ class CullJob(ndb.Model):
                                                                           # included.
     requestDate = ndb.DateTimeProperty(auto_now=True)  # The date when the request was made.
     chains = ndb.TextProperty(required=True)  # The chains supplied by the user. The string takes the form 'chainA\nchainB\nchainC.....'.
-    nonredundant = ndb.TextProperty()  # The nonredundant chains returned by the culling process. The string takes the form 'chainA\nchainB\nchainC.....'.
+    nonredundant = ndb.TextProperty(default='')  # The nonredundant chains returned by the culling process. The string takes the form 'chainA\nchainB\nchainC.....'.
     email = ndb.StringProperty(required=True)  # The email address supplied.
+    startDate = ndb.DateTimeProperty()  # The date when the culling started.
+    finshed = ndb.BooleanProperty(required=True)  # Whether the culling is finished.
 
 class Chain(ndb.Model):
     """The information needed for each chain"""
