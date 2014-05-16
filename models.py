@@ -9,16 +9,16 @@ class CullJob(ndb.Model):
     maxRVal = ndb.FloatProperty(required=True)  # The requested maximum r value permissible.
     minLen = ndb.IntegerProperty(required=True)  # The requested minimum sequence length permissible.
     maxLen = ndb.IntegerProperty(required=True)  # The requested minimum sequence length permissible.
-    includeNonXray = ndb.BooleanProperty(required=True, default=True) # Whether chains with a structure determined by a means other than xray diffraction
-                                                                      # should be included.
-    includeAlphaCarbon = ndb.BooleanProperty(required=True, default=True) # Whether chains with a structure consisting solely of alpha carbons should be
-                                                                          # included.
-    requestDate = ndb.DateTimeProperty(auto_now=True)  # The date when the request was made.
+    includeNonXray = ndb.BooleanProperty(required=True) # Whether chains with a structure determined by a means other than xray diffraction
+                                                        # should be included.
+    includeAlphaCarbon = ndb.BooleanProperty(required=True) # Whether chains with a structure consisting solely of alpha carbons should be
+                                                            # included.
+    requestDate = ndb.DateTimeProperty(auto_now_add=True)  # The date when the request was made.
     chains = ndb.TextProperty(required=True)  # The chains supplied by the user. The string takes the form 'chainA\nchainB\nchainC.....'.
     nonredundant = ndb.TextProperty(default='')  # The nonredundant chains returned by the culling process. The string takes the form 'chainA\nchainB\nchainC.....'.
     email = ndb.StringProperty(required=True)  # The email address supplied.
     startDate = ndb.DateTimeProperty()  # The date when the culling started.
-    finshed = ndb.BooleanProperty(required=True)  # Whether the culling is finished.
+    finished = ndb.BooleanProperty(required=True)  # Whether the culling is finished.
 
 class Chain(ndb.Model):
     """The information needed for each chain"""
