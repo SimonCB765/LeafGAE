@@ -6,6 +6,7 @@ import cgi
 from main import app
 import models
 
+from google.appengine.api import mail
 from google.appengine.ext import blobstore
 from google.appengine.ext import deferred
 from google.appengine.ext import ndb
@@ -19,11 +20,21 @@ import leafcull
 
 # Define some global variables needed by multiple pages.
 MAXCHAINS = 500
+CONTACTEMAIL = 'SimonCB765@gmail.com'
+SENDEMAIL = False
 
 
 def home():
     """Render the home page."""
     return render_template('home.html')
+
+def code_and_PDB():
+    """Render the page for downloading code and PDB data."""
+    return render_template('code_and_PDB.html')
+
+def too_many_chains():
+    """Render the page indicating that too many chains were submitted."""
+    return render_template('too_many_chains.html')
 
 def contacts():
     """Render the contacts page."""
@@ -56,13 +67,44 @@ def serve_list(blobKey):
     response.headers['Content-Disposition'] = 'attachment; filename=CulledProteins'
     return response
 
+def results_list(cullID, nonredundant):
+    """Serve up a file from a culling request"""
+
+    # Get the CullJob information.
+    cullJob = models.CullJob.get_by_id(cullID)
+    chains = cullJob.nonredundant if nonredundant == 'NR' else cullJob.chains
+
+    return Response(chains, mimetype='text/plain')
+
 def results(cullID):
-    """Serve a plaintext list of chains."""
+    """Display information about the status of the request."""
+
+    # Get the CullJob information.
     cullJob = models.CullJob.get_by_id(cullID)
     chains = cullJob.chains
     nonredundantChains = cullJob.nonredundant
-    #response.headers['Content-Type'] = 'text/plain'
-    return Response(chains, mimetype='text/plain')
+    finished = cullJob.finished
+    startDate = cullJob.startDate
+
+    # Determine the status of the culling.
+    if finished:
+        # Culling finished successfully.
+        status = 0
+    elif startDate:
+        # Culling has started.
+        timeDifference = datetime.utcnow() - startDate
+        elapsed = divmod(timeDifference.days * 86400 + timeDifference.seconds, 60)
+        if elapsed[0] > 11:
+            # Culling timed out. Only ten minutes are allowed, but give some flexibility for differences in refreshing and reporting.
+            status = 3
+        else:
+            # Culling underway still.
+            status = 2
+    else:
+        # Culling hasn't started.
+        status = 1
+
+    return render_template('results.html', status=status, contactAddress=CONTACTEMAIL, cullID=cullID)
 
 def help():
     """Render the help page."""
@@ -110,43 +152,52 @@ def culling():
         chainEntities = ndb.get_multi([ndb.Key('Chain', i) for i in chainKeyNames])  # The chain entities of the submitted chains.
 
         # Determine whether culling should be started.
+        numberUniqueChains = len(set([i.representativeChainGrouping for i in chainEntities]))
         if not chainEntities[0]:
             # If no valid chains were submitted.
             return 'No valid chains were submitted. Please back up and try again.'
-        elif len(set([i.representativeChainGrouping for i in chainEntities])) > MAXCHAINS:
+        elif numberUniqueChains > MAXCHAINS:
             # If too many chains were submitted.
-            return 'Too many chains were submitted. No more than {0} unique chains may be submitted at once. Please back up and try again.'.format(MAXCHAINS)
+            return render_template('too_many_chains.html', max=MAXCHAINS, received=numberUniqueChains)
         else:
             # Save the cull job.
             newCullJob = models.CullJob(similarity=float(sequenceIdentity), minRes=float(minRes), maxRes=float(maxRes), maxRVal=float(maxRVal),
                                         minLen=0 if not minLen else int(minLen), maxLen=0 if not maxLen else int(maxLen), includeNonXray=includeNonXray,
-                                        includeAlphaCarbon=includeAlphaCarbon, chains='\n'.join(chunkedChains), email=emailAddress, finshed=False)
+                                        includeAlphaCarbon=includeAlphaCarbon, chains='\n'.join(chunkedChains), email=emailAddress, finished=False)
             newCullJobKey = newCullJob.put()
             newCullJobID = newCullJobKey.id()
 
             # Initiate the culling asynchronously.
             deferred.defer(cull_worker, newCullJobID, chainEntities)
 
+            # Send the notification emails if emails are being sent out.
+            if SENDEMAIL:
+                senderAddress = 'Leaf Results Notifier <Leaf.Notification@gmail.com>'
+                subject = 'Leaf Protein Culling Results Notification'
+                emailBody = ('Thanks for using the Leaf protein culling server. Your culling request has been successfully received, and is being processed now. ' +
+                             'The results of your request can be found here: {0}.'.format('ResLoc'))
+                mail.send_mail(senderAddress, emailAddress, subject, emailBody)
+
             # Put up the successful submission page.
             return render_template('culling_success.html', sequenceIdentity=sequenceIdentity, minRes=minRes, maxRes=maxRes, maxRVal=maxRVal,
                                    minLen=minLen or 'Not Enforced', maxLen=maxLen or 'Not Enforced', includeNonXray='Yes' if includeNonXray else 'No',
-                                   includeAlphaCarbon='Yes' if includeAlphaCarbon else 'No', email=emailAddress, cullJobID=newCullJobID)
+                                   includeAlphaCarbon='Yes' if includeAlphaCarbon else 'No', email=emailAddress if SENDEMAIL else False,
+                                   cullJobID=newCullJobID)
     elif request.method == 'GET':
         return render_template('culling.html', maxChains=MAXCHAINS)
 
 def cull_worker(cullJobID, chainEntities):
     """Perform the culling."""
 
-    try:
-        # Setup the email information.
-        contactAddress = 'SimonCB765@gmail.com'
-        senderAddress = 'Leaf Results Notifier <Leaf.Notification@gmail.com>'
-        subject = 'Leaf Protein Culling Results'
-        successEmailBody = 'Your request successfully completed. You can find your results here: '
-        failEmailBody = ('Your request could not be completed in the alloted time. Please either submit you chains as multiple jobs (each of no more than ' +
-                         str(MAXCHAINS) + ' chains), or cull your chains using the downloadable Leaf implementation.')
-        disclaimer = 'This email address is not monitored. If you feel that you have received this email in error please contact ' + contactAddress + '.'
+    # Setup logging for exceptions.
+    logging.getLogger().setLevel(logging.DEBUG)
 
+    # Initialise notification variables for access in the except statements.
+    goodChainEntities = []
+    similarityGroups = []
+    numberSimmilarities = 0
+
+    try:
         # Get the user request data.
         cullJob = models.CullJob.get_by_id(cullJobID)  # The CullJob entity.
         requestedSimilarity = cullJob.similarity
@@ -190,19 +241,18 @@ def cull_worker(cullJobID, chainEntities):
             chainB = uniqueGroups[i.chainGroupingB]
             similarities[chainA].add(chainB)
             similarities[chainB].add(chainA)
+            numberSimmilarities += 1
+        numberSimmilarities = str(numberSimmilarities) + ' (total)'
 
         # Perform culling.
         removedChains = leafcull.main(similarities)
 
         # Record the results.
         cullJob.nonredundant = '\n'.join([uniqueGroups[i] for i in similarityGroups if not uniqueGroups[i] in removedChains])
-        cullJob.finshed = True
+        cullJob.finished = True
         cullJob.put()
-    except DeadlineExceededError:
-        logging.getLogger().setLevel(logging.DEBUG)
-        logging.error('CullJob - ' + str(cullJobID) + ' exceeded the time limit of 10 minutes.')
     except:
-        logging.getLogger().setLevel(logging.DEBUG)
-        logging.exception('CullJob - ' + str(cullJobID) + ' broke down.')
+        logging.exception('CullJob {0} broke down. It contained {1} good chains, {2} uniqe chains and {3) similarities.'.format(cullJobID,
+                          len(goodChainEntities), len(similarityGroups), numberSimmilarities))
 
     return ''
