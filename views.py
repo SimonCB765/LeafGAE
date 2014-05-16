@@ -50,6 +50,13 @@ def cull_upload_handler():
     keyName = similarity + '_' + maxRes + '_' + maxRVal + '_' + includeNonXray + '_' + includeAlphaCarbon
     type, params = cgi.parse_header(request.files['culledListFile'].headers['Content-Type'])
     blobKey = blobstore.BlobKey(params['blob-key'])
+
+    # Check if this upload will orphan a blob.
+    existingEntity = models.PreCulledList.get_by_id(keyName)
+    if existingEntity:
+        existingKey = existingEntity.listBlobKey
+        deferred.defer(blob_deleter, existingKey)
+
     newCulledList = models.PreCulledList(id=keyName, details=keyName, listBlobKey=blobKey)
     newCulledList.put()
     return 'List Uploaded<br>' + '<br>'.join(['Similarity - ' + similarity, 'MaxRes - ' + maxRes, 'MaxRVal - ' + maxRVal, 'NonXRay - ' + includeNonXray, 'Only Alpha Carbon - ' + includeAlphaCarbon])
@@ -64,6 +71,13 @@ def local_PDB_upload_handler():
     keyName = request.form['fileType']
     type, params = cgi.parse_header(request.files['uploadedFile'].headers['Content-Type'])
     blobKey = blobstore.BlobKey(params['blob-key'])
+
+    # Check if this upload will orphan a blob.
+    existingEntity = models.LocalPDBFiles.get_by_id(keyName)
+    if existingEntity:
+        existingKey = existingEntity.fileBlobKey
+        deferred.defer(blob_deleter, existingKey)
+
     uploadedFile = models.LocalPDBFiles(id=keyName, details=keyName, fileBlobKey=blobKey)
     uploadedFile.put()
     return 'Uploaded the file of {0}'.format(keyName)
@@ -268,5 +282,18 @@ def cull_worker(cullJobID, chainEntities):
     except:
         logging.exception('CullJob {0} broke down. It contained {1} good chains, {2} uniqe chains and {3) similarities.'.format(cullJobID,
                           len(goodChainEntities), len(similarityGroups), numberSimmilarities))
+
+    return ''
+
+def blob_deleter(blobKey):
+    """Task to delete a blob given its key"""
+
+    # Setup logging.
+    logging.getLogger().setLevel(logging.DEBUG)
+
+    try:
+        blobstore.delete(blobKey)
+    except:
+        logging.exception('Failed to delete blob with key {0}.'.format(blobKey))
 
     return ''
