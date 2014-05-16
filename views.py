@@ -30,7 +30,17 @@ def home():
 
 def code_and_PDB():
     """Render the page for downloading code and PDB data."""
-    return render_template('code_and_PDB.html')
+    if request.method == 'POST':
+        fileType = request.form['fileType']
+        fileForLocalCulling = models.LocalPDBFiles.get_by_id(fileType)
+        blobKey = fileForLocalCulling.fileBlobKey
+        blobInfo = blobstore.BlobInfo.get(blobKey)
+        response = Response()
+        response.headers['X-AppEngine-BlobKey'] = blobKey
+        response.headers['Content-Disposition'] = 'attachment; filename={0}.tar.gz'.format(fileType)
+        return response
+    elif request.method == 'GET':
+        return render_template('code_and_PDB.html')
 
 def too_many_chains():
     """Render the page indicating that too many chains were submitted."""
@@ -87,14 +97,6 @@ def local_PDB_upload_form():
     upload_url = blobstore.create_upload_url('/admin/PDB_upload/handler')
     return render_template('local_PDB_upload.html', upload_url=upload_url)
 
-def serve_list(blobKey):
-    """Serve a culled list."""
-    blobInfo = blobstore.BlobInfo.get(blobKey)
-    response = Response()
-    response.headers['X-AppEngine-BlobKey'] = blobKey
-    response.headers['Content-Disposition'] = 'attachment; filename=CulledProteins'
-    return response
-
 def results_list(cullID, nonredundant):
     """Serve up a file from a culling request"""
 
@@ -149,7 +151,11 @@ def downloads():
         keyName = similarity + '_' + maxRes + '_' + maxRVal + '_' + includeNonXray + '_' + includeAlphaCarbon
         culledList = models.PreCulledList.get_by_id(keyName)
         blobKey = culledList.listBlobKey
-        return redirect('/serve_list/' + str(blobKey))
+        blobInfo = blobstore.BlobInfo.get(blobKey)
+        response = Response()
+        response.headers['X-AppEngine-BlobKey'] = blobKey
+        response.headers['Content-Disposition'] = 'attachment; filename=CulledProteins.gz'
+        return response
     elif request.method == 'GET':
         return render_template('downloads.html')
 

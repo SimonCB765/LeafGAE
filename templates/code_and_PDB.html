@@ -18,14 +18,29 @@
 		</div>
 		<div id="content">
 			<p align="center">
-				Instructions in the README file in the source code download
+				For culling from a FASTA format file, only the Leaf source code need by downloaded.
 				<br>
-				Source code download for Windows
+				If you only have a list of PDB chain identifiers, then the PDB data needs to be downloaded as well.
 				<br>
-				Source code download for Linux
-				<br>
-				PDB gzipped data
+				Instructions for setting up and running Leaf can be found in the README file that comes with the source code.
 				<br><br>
+			</p>
+				<form id="downladForm" enctype="multipart/form-data" action="{{ url_for('code_and_PDB') }}" method="post">
+					<table align='center' border='0' cellpadding=5 style="font-size:1em;">
+						<tr>
+							<td>What would you like to download?</td>
+							<td>
+								<select name="fileType">
+									<option value="Leaf" selected="selected">Leaf Source Code</option>
+									<option value="PDB">Local PDB Files</option>
+								</select>
+							</td>
+						</tr>
+					</table>
+					<p align="center"><input type="submit" value="Download" />
+				</form>
+				<br><br>
+			<p align="center">
 				The repository for the Leaf code can be found <b><a href="https://github.com/SimonCB765/Leaf">here</a></b>.
 			</p>
 		</div>

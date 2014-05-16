@@ -17,16 +17,13 @@ app.add_url_rule('/help', 'help', view_func=views.help)
 app.add_url_rule('/downloads', 'downloads', view_func=views.downloads, methods=['POST', 'GET'])
 
 # Code and PDB downloads page.
-app.add_url_rule('/code_and_PDB', 'code_and_PDB', view_func=views.code_and_PDB)
+app.add_url_rule('/code_and_PDB', 'code_and_PDB', view_func=views.code_and_PDB, methods=['POST', 'GET'])
 
 # Too many chains submitted error page
 app.add_url_rule('/too_many_chains', 'too_many_chains', view_func=views.too_many_chains)
 
 # Culling entry page.
 app.add_url_rule('/culling', 'culling', view_func=views.culling, methods=['POST', 'GET'])
-
-# Serve culled lists.
-app.add_url_rule('/serve_list/<blobKey>', 'serve_list', view_func=views.serve_list)
 
 # Results page.
 app.add_url_rule('/results/<int:cullID>', 'results', view_func=views.results)

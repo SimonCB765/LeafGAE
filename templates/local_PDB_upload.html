@@ -1,0 +1,24 @@
+<html>
+	<head>
+		<title>Leaf Protein Culling Server</title>
+	</head>
+	<body>
+		<form enctype="multipart/form-data" action="{{ upload_url }}" method="post">
+			<table align='center' border='0' cellpadding=5>
+				<tr>
+					<td>Upload File: <input type="file" name="uploadedFile"></td>
+				</tr>
+				<tr>
+					<td><b>File of:</b></td>
+					<td>
+						<select name="fileType">
+							<option value="Leaf" selected="selected">Leaf Source Code</option>
+							<option value="PDB">Local PDB Files</option>
+						</select>
+					</td>
+				</tr>
+			</table>
+			<p align="center"><input type="submit" value="Upload" />
+		</form>
+	</body>
+</html>
