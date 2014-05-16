@@ -16,6 +16,12 @@ app.add_url_rule('/help', 'help', view_func=views.help)
 # Downloads page.
 app.add_url_rule('/downloads', 'downloads', view_func=views.downloads, methods=['POST', 'GET'])
 
+# Code and PDB downloads page.
+app.add_url_rule('/code_and_PDB', 'code_and_PDB', view_func=views.code_and_PDB)
+
+# Too many chains submitted error page
+app.add_url_rule('/too_many_chains', 'too_many_chains', view_func=views.too_many_chains)
+
 # Culling entry page.
 app.add_url_rule('/culling', 'culling', view_func=views.culling, methods=['POST', 'GET'])
 
@@ -24,24 +30,11 @@ app.add_url_rule('/serve_list/<blobKey>', 'serve_list', view_func=views.serve_li
 
 # Results page.
 app.add_url_rule('/results/<int:cullID>', 'results', view_func=views.results)
+app.add_url_rule('/results_list/<int:cullID>/<nonredundant>', 'results_list', view_func=views.results_list)
 
 # Admin culled list upload pages.
 app.add_url_rule('/admin/cull_upload', 'cull_upload_form', view_func=views.cull_upload_form, methods=['POST', 'GET'])
 app.add_url_rule('/admin/cull_upload/handler', 'cull_upload_handler', view_func=views.cull_upload_handler, methods=['POST', 'GET'])
-
-
-#    url(r'^cullingchoice/$', 'Leaf.views.cullingchoice'),
-#    url(r'^user_culling/$', 'Leaf.views.user_culling'),
-#    url(r'^user_pdb_culling/$', 'Leaf.views.user_pdb_culling'),
-#    url(r'^whole_pdb_culling/$', 'Leaf.views.whole_pdb_culling'),
-#    url(r'^culling/user_submit/$', 'Leaf.views.user_submit'),
-#    url(r'^culling/user_pdb_submit/$', 'Leaf.views.user_pdb_submit'),
-##    url(r'^culling/whole_pdb_submit/$', 'Leaf.views.whole_pdb_submit'),
-#    url(r'^downloads/(?P<fileName>[0-9a-zA-Z_./]+)/$', 'Leaf.views.download_gzipped'),
-##    url(r'^requestsent/$', 'Leaf.views.sent'),
-#    url(r'^requestsent/(?P<result_id>\d+)/(?P<cullType>[a-z]+)/$', 'Leaf.views.sent'),
-##    url(r'^results/[0-9]+/[0-9]+/[0-9]+/(?P<result_id>\d+)/(?P<cullType>[a-z]+)/$', 'Leaf.views.results'),
-#    url(r'^results/[0-9]+/[0-9]+/[0-9]+/(?P<result_id>\d+)/(?P<cullType>[a-z]+)/(?P<fileName>[a-zA-Z_]+)/$', 'Leaf.views.txtlist')
 
 ###################
 # Error handlers. #

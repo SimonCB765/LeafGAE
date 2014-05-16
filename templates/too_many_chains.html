@@ -1,0 +1,41 @@
+<html>
+	<head>
+		<title>Leaf Protein Culling Server</title>
+		<link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/main.css') }}">
+	</head>
+	<body>
+		<br>
+		<div id="navigation" align="center">
+			<b><a href="{{ url_for('home') }}">Home</a></b>
+			<hr>
+			<b><a href="{{ url_for('code_and_PDB') }}">Local Culling</a></b>
+			<hr>
+			<b><a href="{{ url_for('culling') }}">Server Culling</a></b>
+			<hr>
+			<b><a href="{{ url_for('downloads') }}">Pre-Culled Lists</a></b>
+			<hr>
+			<b><a href="{{ url_for('contacts') }}">Contact Information</a></b>
+		</div>
+		<div id="content">
+			<p align="center">
+				Too many chains were submitted.
+				<br><br>
+				{{ received }} chains with unique sequences were submitted, but no more than {{ max }} can be culled at one time.
+				<br><br>
+				There are two options for getting around this constraint:
+				<br>
+				<ol>
+					<li>Cull your chains locally using the source code and data found <b><a href="{{ url_for('code_and_PDB') }}">here</a></b>.</li>
+					<li>Submit in multiple batches.
+						<ol type="a">
+							<li>Break your larger set of chains into smaller sets that can be culled by the server.</li>
+							<li>Submit the smaller sets to the server.</li>
+							<li>Combine the non-redundant sets returned and resubmit them to the server.</li>
+							<li>Repeat as needed.</li>
+						</ol>
+					</li>
+				</ol>
+			</p>
+		</div>
+	</body>
+</html>

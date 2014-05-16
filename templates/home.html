@@ -8,7 +8,9 @@
 		<div id="navigation" align="center">
 			<b><a href="{{ url_for('home') }}">Home</a></b>
 			<hr>
-			<b><a href="{{ url_for('culling') }}">Culling</a></b>
+			<b><a href="{{ url_for('code_and_PDB') }}">Local Culling</a></b>
+			<hr>
+			<b><a href="{{ url_for('culling') }}">Server Culling</a></b>
 			<hr>
 			<b><a href="{{ url_for('downloads') }}">Pre-Culled Lists</a></b>
 			<hr>
@@ -29,7 +31,12 @@
 				</ol>
 			</p>
 			<p align="center">
-				<br>For user that wish to cull arbitrary FASTA files, the source code for the Leaf algorithm can be <b><a href="https://github.com/SimonCB765/Leaf">downloaded</a></b>.<br>
+				<br>
+				For users that wish to cull arbitrary FASTA files or sets of PDB chains too large for the server,
+				<br>
+				the source code for the Leaf algorithm and the files needed to cull the PDB locally can be found
+				<b><a href="{{ url_for('code_and_PDB') }}">here</a></b>.
+				<br>
 				
 				<br>Contact information for the website and authors of the paper can be found <b><a href="{{ url_for('contacts') }}">here</a></b>.<br>
 				

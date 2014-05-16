@@ -8,7 +8,9 @@
 		<div id="navigation" align="center">
 			<b><a href="{{ url_for('home') }}">Home</a></b>
 			<hr>
-			<b><a href="{{ url_for('culling') }}">Culling</a></b>
+			<b><a href="{{ url_for('code_and_PDB') }}">Local Culling</a></b>
+			<hr>
+			<b><a href="{{ url_for('culling') }}">Server Culling</a></b>
 			<hr>
 			<b><a href="{{ url_for('downloads') }}">Pre-Culled Lists</a></b>
 			<hr>
@@ -18,10 +20,12 @@
 			<p align="center">
 				You're culling request was successfully received, and is being processed now.
 				<br>
-				The result's will be emailed to your address ({{ email }}) once the culling is complete.
-				<br>
 				When finished, your results will be available <a href="{{ url_for('results', cullID=cullJobID) }}">here</a></b>.
 				<br>
+				{% if email %}
+					This information has also been emailed to your email address ({{ email }}).
+					<br>
+				{% endif %}
 				The parameters for your culling are:
 				<br><br>
 				<table align='center' border="2" cellpadding="5" style="width:50%; border:0; font-size:1em;">
