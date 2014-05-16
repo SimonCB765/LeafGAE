@@ -51,3 +51,9 @@ class PreCulledList(ndb.Model):
                                                  # E is whether alpha carbon only structures are skipped (Y or N)
                                                  # Also used as the unique id for the entity.
     listBlobKey = ndb.BlobKeyProperty(required=True)  # The blob key for the stored gzipped file.
+
+class LocalPDBFiles(ndb.Model):
+    """The information about each local PDB file"""
+
+    details = ndb.StringProperty(required=True)  # Records the type of PDB data saved in the entity.
+    fileBlobKey = ndb.BlobKeyProperty(required=True)  # The blob key for the stored gzipped file.

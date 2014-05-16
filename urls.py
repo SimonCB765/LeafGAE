@@ -36,6 +36,10 @@ app.add_url_rule('/results_list/<int:cullID>/<nonredundant>', 'results_list', vi
 app.add_url_rule('/admin/cull_upload', 'cull_upload_form', view_func=views.cull_upload_form, methods=['POST', 'GET'])
 app.add_url_rule('/admin/cull_upload/handler', 'cull_upload_handler', view_func=views.cull_upload_handler, methods=['POST', 'GET'])
 
+# Admin PDB chains and similarities upload.
+app.add_url_rule('/admin/PDB_upload', 'local_PDB_upload_form', view_func=views.local_PDB_upload_form, methods=['POST', 'GET'])
+app.add_url_rule('/admin/PDB_upload/handler', 'local_PDB_upload_handler', view_func=views.local_PDB_upload_handler, methods=['POST', 'GET'])
+
 ###################
 # Error handlers. #
 ###################

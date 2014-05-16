@@ -59,6 +59,20 @@ def cull_upload_form():
     upload_url = blobstore.create_upload_url('/admin/cull_upload/handler')
     return render_template('cull_upload.html', upload_url=upload_url)
 
+def local_PDB_upload_handler():
+    """Process the information uploaded with the culled list."""
+    keyName = request.form['fileType']
+    type, params = cgi.parse_header(request.files['uploadedFile'].headers['Content-Type'])
+    blobKey = blobstore.BlobKey(params['blob-key'])
+    uploadedFile = models.LocalPDBFiles(id=keyName, details=keyName, fileBlobKey=blobKey)
+    uploadedFile.put()
+    return 'Uploaded the file of {0}'.format(keyName)
+
+def local_PDB_upload_form():
+    """Render the page to upload the chains and similarities."""
+    upload_url = blobstore.create_upload_url('/admin/PDB_upload/handler')
+    return render_template('local_PDB_upload.html', upload_url=upload_url)
+
 def serve_list(blobKey):
     """Serve a culled list."""
     blobInfo = blobstore.BlobInfo.get(blobKey)
