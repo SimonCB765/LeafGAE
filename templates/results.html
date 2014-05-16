@@ -1,0 +1,65 @@
+<html>
+	<head>
+		<title>Leaf Protein Culling Server</title>
+		<link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/main.css') }}">
+		<meta http-equiv="refresh" content="30" />
+	</head>
+	<body>
+		<br>
+		<div id="navigation" align="center">
+			<b><a href="{{ url_for('home') }}">Home</a></b>
+			<hr>
+			<b><a href="{{ url_for('code_and_PDB') }}">Local Culling</a></b>
+			<hr>
+			<b><a href="{{ url_for('culling') }}">Server Culling</a></b>
+			<hr>
+			<b><a href="{{ url_for('downloads') }}">Pre-Culled Lists</a></b>
+			<hr>
+			<b><a href="{{ url_for('contacts') }}">Contact Information</a></b>
+		</div>
+		<div id="content">
+			<p align="center" style="font-size:1.2em;">
+				{% if status == 0 %}
+					Good news, your request has successfully completed.
+					<br>
+				{% elif status == 1 %}
+					The culling you requested hasn't started yet. Please check back later.
+					<br>
+				{% elif status == 2 %}
+					The culling you requested hasn't finished yet. Please check back later.
+					<br>
+				{% else %}
+					Looks like your culling request didn't finish in time.
+					<br><br>
+					Each request is allowed ten minutes in which to finish.
+					<br>
+					For the vast majority of requests this is sufficient, but in this case it wasn't.
+					<br><br>
+					There are two options for getting around this constraint:
+					<br>
+					<ol>
+						<li>Cull your chains locally using the source code and data found <b><a href="{{ url_for('code_and_PDB') }}">here</a></b>.</li>
+						<li>Submit in multiple batches.
+							<ol type="a">
+								<li>Break your larger set of chains into smaller sets that can be culled by the server.</li>
+								<li>Submit the smaller sets to the server.</li>
+								<li>Combine the non-redundant sets returned and resubmit them to the server.</li>
+								<li>Repeat as needed.</li>
+							</ol>
+						</li>
+					</ol>
+				{% endif %}
+			</p>
+			<br>
+			<p align="center">
+				Your original input chains can be found <b><a href="{{ url_for('results_list', cullID=cullID, nonredundant='input') }}">here</a></b>.
+				{% if status == 0 %}
+					<br>
+					Your non-redundant chains can be found <b><a href="{{ url_for('results_list', cullID=cullID, nonredundant='NR') }}">here</a></b>.
+				{% endif %}
+				<br><br>
+				If you have any questions about your results, please contact {{ contactAddress }}.
+			</p>
+		</div>
+	</body>
+</html>
