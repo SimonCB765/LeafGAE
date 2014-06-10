@@ -20,6 +20,8 @@
 			<p align="center">
 				You're culling request was successfully received, and is being processed now.
 				<br>
+				The time taken for your culling to finish depends on the number of sequences submitted and the server load.
+				<br>
 				When finished, your results will be available <a href="{{ url_for('results', cullID=cullJobID) }}">here</a></b>.
 				<br>
 				{% if email %}
