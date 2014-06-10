@@ -16,6 +16,8 @@ import logging
 
 from flask import render_template, request, redirect, Response
 
+import blob_deleter
+import cull_worker
 import leafcull
 
 # Define some global variables needed by multiple pages.
@@ -65,7 +67,7 @@ def cull_upload_handler():
     existingEntity = models.PreCulledList.get_by_id(keyName)
     if existingEntity:
         existingKey = existingEntity.listBlobKey
-        deferred.defer(blob_deleter, existingKey)
+        deferred.defer(blob_deleter.main, existingKey)
 
     newCulledList = models.PreCulledList(id=keyName, details=keyName, listBlobKey=blobKey)
     newCulledList.put()
@@ -86,11 +88,11 @@ def local_PDB_upload_handler():
     existingEntity = models.LocalPDBFiles.get_by_id(keyName)
     if existingEntity:
         existingKey = existingEntity.fileBlobKey
-        deferred.defer(blob_deleter, existingKey)
+        deferred.defer(blob_deleter.main, existingKey)
 
     uploadedFile = models.LocalPDBFiles(id=keyName, details=keyName, fileBlobKey=blobKey)
     uploadedFile.put()
-    return 'Uploaded the file of {0}'.format(keyName)
+    return 'Uploaded the {0} file'.format(keyName)
 
 def local_PDB_upload_form():
     """Render the page to upload the chains and similarities."""
@@ -164,30 +166,64 @@ def culling():
     if request.method == 'POST':
         # Extract the user specified parameters.
         submittedChains = request.form['pastedInfo']
-        sequenceIdentity = request.form['pc']
-        minRes = request.form['minRes']
-        maxRes = request.form['maxRes']
-        maxRVal = request.form['maxRVal']
+        sequenceIdentity = float(request.form['pc'])
+        minRes = float(request.form['minRes'])
+        maxRes = float(request.form['maxRes'])
+        maxRVal = float(request.form['maxRVal'])
         enforceMinLength = request.form['enforceMinLength']
-        minLen = None
-        if enforceMinLength == 'yes':
-            minLen = request.form['minLen']
+        minLen = -1 if not enforceMinLength == 'yes' else int(request.form['minLen'])
         enforceMaxLength = request.form['enforceMaxLength']
-        maxLen = None
-        if enforceMaxLength == 'yes':
-            maxLen = request.form['maxLen']
+        maxLen = -1 if not enforceMaxLength == 'yes' else int(request.form['maxLen'])
         includeNonXray = True if request.form['includeNonXray'] == 'yes' else False
         includeAlphaCarbon = True if request.form['includeAlphaCarbon'] == 'yes' else False
         emailAddress = request.form['email']
 
-        # Process the chains.
-        chunkedChains = set([i.strip() for i in submittedChains.split('\n')])
-        chainKeyNames = list(chunkedChains)  # The chains submitted by the user.
-        chainEntities = ndb.get_multi([ndb.Key('Chain', i) for i in chainKeyNames])  # The chain entities of the submitted chains.
+        # Get the submitted chains.
+        chainIdentifiers = set([i.strip() for i in submittedChains.split('\n')])  # The chains submitted by the user.
+
+        # Establish the location of the data files containing the chain information.
+        projectDirectory = os.path.dirname(os.path.realpath(__file__))
+        chainData = os.path.join(projectDirectory, 'Data')
+        chainData = os.path.join(chainData, 'Chains.tsv')
+
+        # Determine the chains that meet the criteria supplied by the user. A chain is only accepted if its resolution is between the min and max
+        # requested resolution, its r value is no greater than the requested maximum r value, its sequence length is within the requested seuence length
+        # range (or no range was requested), it does not have a non-xray structure/non-xray structures are allowed and its structure does not only consist
+        # of alpha carbons/alpha carbon only structures are being permitted.
+        allValidChains = {}  # The chains that meet the user specified quality criteria.
+        readChainData = open(chainData, 'r')
+        readChainData.readline()  # Strip the header.
+        for i in readChainData:
+            # Parse the data file containing all the chains in the PDB, and record only those that meet the quality criteria.
+            chunks = (i.strip()).split('\t')
+            chain = chunks[0]
+            resolution = float(chunks[1])
+            rValue = float(chunks[2])
+            sequenceLength = int(chunks[3])
+            xRayNotUsed = chunks[4] == 'yes'
+            alphaCarbonOnly = chunks[5] == 'yes'
+            representativeGroup = chunks[6]
+            invalid = ((chain not in chainIdentifiers) or
+                       (xRayNotUsed and not includeNonXray) or
+                       (resolution < minRes) or
+                       (resolution > maxRes) or
+                       (rValue > maxRVal) or
+                       (alphaCarbonOnly and not includeAlphaCarbon) or
+                       (minLen != -1 and sequenceLength < minLen) or
+                       (maxLen != -1 and sequenceLength > maxLen)
+                       )
+            if not invalid:
+                allValidChains[chain] = representativeGroup
+        readChainData.close()
+
+        # Determine the representative chains.
+        representativeGroupings = {}
+        for i in allValidChains:
+            representativeGroupings[allValidChains[i]] = i
 
         # Determine whether culling should be started.
-        numberUniqueChains = len(set([i.representativeChainGrouping for i in chainEntities]))
-        if not chainEntities[0]:
+        numberUniqueChains = len(representativeGroupings)
+        if numberUniqueChains == 0:
             # If no valid chains were submitted.
             return 'No valid chains were submitted. Please back up and try again.'
         elif numberUniqueChains > MAXCHAINS:
@@ -195,14 +231,14 @@ def culling():
             return render_template('too_many_chains.html', max=MAXCHAINS, received=numberUniqueChains)
         else:
             # Save the cull job.
-            newCullJob = models.CullJob(similarity=float(sequenceIdentity), minRes=float(minRes), maxRes=float(maxRes), maxRVal=float(maxRVal),
-                                        minLen=0 if not minLen else int(minLen), maxLen=0 if not maxLen else int(maxLen), includeNonXray=includeNonXray,
-                                        includeAlphaCarbon=includeAlphaCarbon, chains='\n'.join(chunkedChains), email=emailAddress, finished=False)
+            newCullJob = models.CullJob(similarity=sequenceIdentity, minRes=minRes, maxRes=maxRes, maxRVal=maxRVal, minLen=minLen, maxLen=maxLen,
+                                        includeNonXray=includeNonXray, includeAlphaCarbon=includeAlphaCarbon, chains='\n'.join(chainIdentifiers),
+                                        email=emailAddress, finished=False)
             newCullJobKey = newCullJob.put()
             newCullJobID = newCullJobKey.id()
 
             # Initiate the culling asynchronously.
-            deferred.defer(cull_worker, newCullJobID, chainEntities)
+            deferred.defer(cull_worker.main, newCullJobID, representativeGroupings, sequenceIdentity)
 
             # Send the notification emails if emails are being sent out.
             if SENDEMAIL:
@@ -219,87 +255,3 @@ def culling():
                                    cullJobID=newCullJobID)
     elif request.method == 'GET':
         return render_template('culling.html', maxChains=MAXCHAINS)
-
-def cull_worker(cullJobID, chainEntities):
-    """Perform the culling."""
-
-    # Setup logging for exceptions.
-    logging.getLogger().setLevel(logging.DEBUG)
-
-    # Initialise notification variables for access in the except statements.
-    goodChainEntities = []
-    similarityGroups = []
-    numberSimmilarities = 0
-
-    try:
-        # Get the user request data.
-        cullJob = models.CullJob.get_by_id(cullJobID)  # The CullJob entity.
-        requestedSimilarity = cullJob.similarity
-        requestedMinRes = cullJob.minRes
-        requestedMaxRes = cullJob.maxRes
-        requestedMaxRVal = cullJob.maxRVal
-        requestedMinLen = cullJob.minLen
-        requestedMaxLen = cullJob.maxLen
-        requestedIncludeNonXRay = cullJob.includeNonXray
-        requestedIncludeAlphaCarbon = cullJob.includeAlphaCarbon
-        userEmail = cullJob.email
-
-        # Record that the culling has started.
-        cullJob.startDate = datetime.utcnow()
-
-        # Determine the entries that meet the criteria supplied by the user. A chain is only accepted if its resolution is between the min and max
-        # requested resolution, its r value is no greater than the requested maximum r value, its sequence length is within the requested seuence length
-        # range (or no range was requested), it does not have a non-xray structure/non-xray structures are allowed and its structure does not only consist
-        # of alpha carbons/alpha carbon only structures are being permitted.
-        goodChainEntities = [i for i in chainEntities if (i.resolution >= requestedMinRes) and (i.resolution <= requestedMaxRes) and
-                             (i.rVal <= requestedMaxRVal) and (i.sequenceLength >= requestedMinLen) and
-                             (i.sequenceLength <= requestedMaxLen or requestedMaxLen == 0) and (i.nonXRay <= requestedIncludeNonXRay) and
-                             (i.alphaCarbonOnly <= requestedIncludeAlphaCarbon)]
-
-        # Determine the unique similarity groups of the chains that meet the criteria.
-        similarityGroups = [i.representativeChainGrouping for i in goodChainEntities]  # The similarity groups of the submitted chains.
-        uniqueGroups = dict((i[0], i[1].chain) for i in zip(similarityGroups, goodChainEntities))  # Mapping of each unique similarity group (key) to its
-                                                                                                   # representative chain (value).
-        similarityGroups = uniqueGroups.keys()  # Unique similarity groups.
-
-        # Setup the query for extracting the similarities for the unique similarity group.
-        similarityQuery = models.Similarity.query()
-        similarityQuery = similarityQuery.filter(models.Similarity.chainGroupingA.IN(similarityGroups))
-        similarityQuery = similarityQuery.filter(models.Similarity.chainGroupingB.IN(similarityGroups))
-        similarityQuery = similarityQuery.filter(models.Similarity.similarity >= requestedSimilarity)
-
-        # Determine similarities between similarity groups.
-        similarities = dict((uniqueGroups[i], set([])) for i in similarityGroups)
-        for i in similarityQuery:
-            chainA = uniqueGroups[i.chainGroupingA]
-            chainB = uniqueGroups[i.chainGroupingB]
-            similarities[chainA].add(chainB)
-            similarities[chainB].add(chainA)
-            numberSimmilarities += 1
-        numberSimmilarities = str(numberSimmilarities) + ' (total)'
-
-        # Perform culling.
-        removedChains = leafcull.main(similarities)
-
-        # Record the results.
-        cullJob.nonredundant = '\n'.join([uniqueGroups[i] for i in similarityGroups if not uniqueGroups[i] in removedChains])
-        cullJob.finished = True
-        cullJob.put()
-    except:
-        logging.exception('CullJob {0} broke down. It contained {1} good chains, {2} uniqe chains and {3) similarities.'.format(cullJobID,
-                          len(goodChainEntities), len(similarityGroups), numberSimmilarities))
-
-    return ''
-
-def blob_deleter(blobKey):
-    """Task to delete a blob given its key"""
-
-    # Setup logging.
-    logging.getLogger().setLevel(logging.DEBUG)
-
-    try:
-        blobstore.delete(blobKey)
-    except:
-        logging.exception('Failed to delete blob with key {0}.'.format(blobKey))
-
-    return ''
