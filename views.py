@@ -42,7 +42,7 @@ def code_and_PDB():
             blobInfo = blobstore.BlobInfo.get(blobKey)
             response = Response()
             response.headers['X-AppEngine-BlobKey'] = blobKey
-            response.headers['Content-Disposition'] = 'attachment; filename={0}.tar.gz'.format(fileType)
+            response.headers['Content-Disposition'] = 'attachment; filename={0}.tar'.format(fileType)
             return response
         elif fileType == 'PDB':
             # The user wants to download a subset of the PDB, so generate that subset.
