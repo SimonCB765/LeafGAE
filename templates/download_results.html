@@ -1,0 +1,44 @@
+<html>
+	<head>
+		<title>Leaf Protein Culling Server</title>
+		<link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/main.css') }}">
+		<meta http-equiv="refresh" content="30" />
+	</head>
+	<body>
+		<br>
+		<div id="navigation" align="center">
+			<b><a href="{{ url_for('home') }}">Home</a></b>
+			<hr>
+			<b><a href="{{ url_for('code_and_PDB') }}">Local Culling</a></b>
+			<hr>
+			<b><a href="{{ url_for('culling') }}">Server Culling</a></b>
+			<hr>
+			<b><a href="{{ url_for('downloads') }}">Pre-Culled Lists</a></b>
+			<hr>
+			<b><a href="{{ url_for('contacts') }}">Contact Information</a></b>
+		</div>
+		<div id="content">
+			<p align="center">
+				{% if status == 0 %}
+					Good news, your request has successfully completed.
+					<br><br>
+					The data for the chains you requested can be found <b><a href="{{ url_for('results_list', ID=PDBDownloadID, file='PDB_Chains') }}">here</a></b>.
+					<br>
+					The data for the similarities between the chains can be found <b><a href="{{ url_for('results_list', ID=PDBDownloadID, file='PDB_Similarities') }}">here</a></b>.
+					<br><br><br>
+					In order to cull from the PDB, download the file of chains and the one of similarities above. Place both in a directory on your local machine
+					and supply the location of the directory as the first argument to the standalone Leaf code (downloadable <b><a href="{{ url_for('code_and_PDB') }}">here</a></b>).
+					<br><br>
+					More directions for running the culling (both from the PDB and fasta files) can be found in the README included with the Leaf code.
+					<br>
+				{% elif status == 1 %}
+					<br><br>
+					Your download hasn't finished being created yet.
+					<br><br>
+					If the server is overloaded or you requested a large number of chains this process will take longer.
+					<br><br><br>
+				{% endif %}
+			</p>
+		</div>
+	</body>
+</html>

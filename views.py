@@ -18,6 +18,7 @@ from flask import render_template, request, redirect, Response
 
 import blob_deleter
 import cull_worker
+import download_generator
 import leafcull
 
 # Define some global variables needed by multiple pages.
@@ -34,15 +35,47 @@ def code_and_PDB():
     """Render the page for downloading code and PDB data."""
     if request.method == 'POST':
         fileType = request.form['fileType']
-        fileForLocalCulling = models.LocalPDBFiles.get_by_id(fileType)
-        blobKey = fileForLocalCulling.fileBlobKey
-        blobInfo = blobstore.BlobInfo.get(blobKey)
-        response = Response()
-        response.headers['X-AppEngine-BlobKey'] = blobKey
-        response.headers['Content-Disposition'] = 'attachment; filename={0}.tar.gz'.format(fileType)
-        return response
+        if fileType == 'Leaf':
+            # The user wants to download the Leaf source code.
+            fileForLocalCulling = models.LocalPDBFiles.get_by_id(fileType)
+            blobKey = fileForLocalCulling.fileBlobKey
+            blobInfo = blobstore.BlobInfo.get(blobKey)
+            response = Response()
+            response.headers['X-AppEngine-BlobKey'] = blobKey
+            response.headers['Content-Disposition'] = 'attachment; filename={0}.tar.gz'.format(fileType)
+            return response
+        elif fileType == 'PDB':
+            # The user wants to download a subset of the PDB, so generate that subset.
+            userInputChains = set([i.strip() for i in request.form['pastedInfo'].split('\n')])
+
+            # Save the downloaded information.
+            newPDBDownload = models.PDBDownload(finished=False)
+            newPDBDownloadKey = newPDBDownload.put()
+            newPDBDownloadID = newPDBDownloadKey.id()
+
+            # Initiate the download asynchronously.
+            deferred.defer(download_generator.main, newPDBDownloadID, userInputChains)
+
+            return render_template('download_success.html', PDBDownloadID=newPDBDownloadID)
     elif request.method == 'GET':
         return render_template('code_and_PDB.html')
+
+def download_results(PDBDownloadID):
+    """Render the results of a PDB download request."""
+
+    # Get the PDBDownload information.
+    PDBDownload = models.PDBDownload.get_by_id(PDBDownloadID)
+    finished = PDBDownload.finished
+
+    # Determine the status of the download generation.
+    if finished:
+        # Generation finished successfully.
+        status = 0
+    else:
+        # Generation hasn't finished.
+        status = 1
+
+    return render_template('download_results.html', PDBDownloadID=PDBDownloadID, status=status)
 
 def too_many_chains():
     """Render the page indicating that too many chains were submitted."""
@@ -99,22 +132,33 @@ def local_PDB_upload_form():
     upload_url = blobstore.create_upload_url('/admin/PDB_upload/handler')
     return render_template('local_PDB_upload.html', upload_url=upload_url)
 
-def results_list(cullID, nonredundant):
+def results_list(ID, file):
     """Serve up a file from a culling request"""
 
-    # Get the CullJob information.
-    cullJob = models.CullJob.get_by_id(cullID)
-    chains = cullJob.nonredundant if nonredundant == 'NR' else cullJob.chains
+    if file == 'Cull_Input':
+        # Get the CullJob information.
+        cullJob = models.CullJob.get_by_id(ID)
+        output = cullJob.chains
+    elif file == 'Cull_NR':
+        # Get the CullJob information.
+        cullJob = models.CullJob.get_by_id(ID)
+        output = cullJob.nonredundant
+    elif file == 'PDB_Chains':
+        # Get the PDB download information.
+        PDBDownload = models.PDBDownload.get_by_id(ID)
+        output = PDBDownload.chains
+    elif file == 'PDB_Similarities':
+        # Get the PDB download information.
+        PDBDownload = models.PDBDownload.get_by_id(ID)
+        output = PDBDownload.similarities
 
-    return Response(chains, mimetype='text/plain')
+    return Response(output, mimetype='text/plain')
 
 def results(cullID):
     """Display information about the status of the request."""
 
     # Get the CullJob information.
     cullJob = models.CullJob.get_by_id(cullID)
-    chains = cullJob.chains
-    nonredundantChains = cullJob.nonredundant
     finished = cullJob.finished
     startDate = cullJob.startDate
 
@@ -250,8 +294,8 @@ def culling():
 
             # Put up the successful submission page.
             return render_template('culling_success.html', sequenceIdentity=sequenceIdentity, minRes=minRes, maxRes=maxRes, maxRVal=maxRVal,
-                                   minLen=minLen or 'Not Enforced', maxLen=maxLen or 'Not Enforced', includeNonXray='Yes' if includeNonXray else 'No',
-                                   includeAlphaCarbon='Yes' if includeAlphaCarbon else 'No', email=emailAddress if SENDEMAIL else False,
-                                   cullJobID=newCullJobID)
+                                   minLen='Not Enforced' if minLen == -1 else minLen, maxLen='Not Enforced' if maxLen == -1 else maxLen,
+                                   includeNonXray='Yes' if includeNonXray else 'No', includeAlphaCarbon='Yes' if includeAlphaCarbon else 'No',
+                                   email=emailAddress if SENDEMAIL else False, cullJobID=newCullJobID)
     elif request.method == 'GET':
         return render_template('culling.html', maxChains=MAXCHAINS)

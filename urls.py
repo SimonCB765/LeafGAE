@@ -25,9 +25,10 @@ app.add_url_rule('/too_many_chains', 'too_many_chains', view_func=views.too_many
 # Culling entry page.
 app.add_url_rule('/culling', 'culling', view_func=views.culling, methods=['POST', 'GET'])
 
-# Results page.
+# Results pages.
 app.add_url_rule('/results/<int:cullID>', 'results', view_func=views.results)
-app.add_url_rule('/results_list/<int:cullID>/<nonredundant>', 'results_list', view_func=views.results_list)
+app.add_url_rule('/download_results/<int:PDBDownloadID>', 'download_results', view_func=views.download_results)
+app.add_url_rule('/results_list/<int:ID>/<file>', 'results_list', view_func=views.results_list)
 
 # Admin culled list upload pages.
 app.add_url_rule('/admin/cull_upload', 'cull_upload_form', view_func=views.cull_upload_form, methods=['POST', 'GET'])

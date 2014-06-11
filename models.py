@@ -1,7 +1,7 @@
 from google.appengine.ext import ndb
 
 class CullJob(ndb.Model):
-    """Contains the information needed to specify a culling job"""
+    """Contains the information needed to specify a culling job."""
 
     similarity = ndb.FloatProperty(required=True)  # The requested maximum percentage sequence similarity permissible.
     minRes = ndb.FloatProperty(required=True)  # The requested minimum resolution permissible.
@@ -21,7 +21,7 @@ class CullJob(ndb.Model):
     finished = ndb.BooleanProperty(required=True)  # Whether the culling is finished.
 
 class Chain(ndb.Model):
-    """The information needed for each chain"""
+    """The information needed for each chain."""
 
     chain = ndb.StringProperty(required=True)  # The chain id for the chain. Also used as the unique id for the entity.
     resolution = ndb.FloatProperty(required=True)  # The resolution of the chain's structure.
@@ -40,7 +40,7 @@ class Similarity(ndb.Model):
     similarity = ndb.FloatProperty(required=True)  # The similarity between the two chains.
 
 class PreCulledList(ndb.Model):
-    """The information about each pre-culled list"""
+    """The information about each pre-culled list."""
 
     details = ndb.StringProperty(required=True)  # Contains the information needed to uniquely identify the pre-culled list.
                                                  # The string is of the form A_B_C_D_E_F where:
@@ -53,7 +53,15 @@ class PreCulledList(ndb.Model):
     listBlobKey = ndb.BlobKeyProperty(required=True)  # The blob key for the stored gzipped file.
 
 class LocalPDBFiles(ndb.Model):
-    """The information about each local PDB file"""
+    """The information about each local PDB file."""
 
     details = ndb.StringProperty(required=True)  # Records the type of PDB data saved in the entity.
     fileBlobKey = ndb.BlobKeyProperty(required=True)  # The blob key for the stored gzipped file.
+
+class PDBDownload(ndb.Model):
+    """The data about the chains that a user requested to download."""
+
+    chains = ndb.TextProperty()  # The data about the chains that the user wanted to download.
+    similarities = ndb.TextProperty()  # The data about the similarities between the chains.
+    requestDate = ndb.DateTimeProperty(auto_now_add=True)  # The date when the request was made.
+    finished = ndb.BooleanProperty(required=True)  # Whether the download generation is finished.

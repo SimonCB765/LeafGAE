@@ -52,10 +52,10 @@
 			</p>
 			<br>
 			<p align="center">
-				Your original input chains can be found <b><a href="{{ url_for('results_list', cullID=cullID, nonredundant='input') }}">here</a></b>.
+				Your original input chains can be found <b><a href="{{ url_for('results_list', ID=cullID, file='Cull_Input') }}">here</a></b>.
 				{% if status == 0 %}
 					<br>
-					Your non-redundant chains can be found <b><a href="{{ url_for('results_list', cullID=cullID, nonredundant='NR') }}">here</a></b>.
+					Your non-redundant chains can be found <b><a href="{{ url_for('results_list', ID=cullID, file='Cull_NR') }}">here</a></b>.
 				{% endif %}
 				<br><br>
 				If you have any questions about your results, please contact {{ contactAddress }}.

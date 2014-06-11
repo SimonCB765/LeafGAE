@@ -1,0 +1,31 @@
+<html>
+	<head>
+		<title>Leaf Protein Culling Server</title>
+		<link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/main.css') }}">
+	</head>
+	<body>
+		<br>
+		<div id="navigation" align="center">
+			<b><a href="{{ url_for('home') }}">Home</a></b>
+			<hr>
+			<b><a href="{{ url_for('code_and_PDB') }}">Local Culling</a></b>
+			<hr>
+			<b><a href="{{ url_for('culling') }}">Server Culling</a></b>
+			<hr>
+			<b><a href="{{ url_for('downloads') }}">Pre-Culled Lists</a></b>
+			<hr>
+			<b><a href="{{ url_for('contacts') }}">Contact Information</a></b>
+		</div>
+		<div id="content">
+			<p align="center">
+				<br>
+				Your PDB download request was successfully received, and is being processed now.
+				<br><br>
+				The time taken for your download to finish depends on the number of chains requested and the server load.
+				<br><br>
+				When finished, your results will be available <a href="{{ url_for('download_results', PDBDownloadID=PDBDownloadID) }}">here</a></b>.
+				<br><br>
+			</p>
+		</div>
+	</body>
+</html>
