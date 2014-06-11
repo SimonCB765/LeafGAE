@@ -2,6 +2,7 @@
 	<head>
 		<title>Leaf Protein Culling Server</title>
 		<link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/main.css') }}">
+		<script type="text/javascript" src="{{ url_for('static', filename='scripts/culling.js') }}"></script>
 	</head>
 	<body>
 		<br>
@@ -18,31 +19,34 @@
 		</div>
 		<div id="content">
 			<p align="center">
-				For culling from a FASTA format file, only the Leaf source code need by downloaded.
+				For culling from a FASTA format file, only the Leaf source code need be downloaded.
 				<br>
-				If you only have a list of PDB chain identifiers, then the PDB data needs to be downloaded as well.
+				If you only have a list of PDB chain identifiers, then the PDB data for those chains needs to be downloaded as well.
 				<br>
 				Instructions for setting up and running Leaf can be found in the README file that comes with the source code.
+				<br>
+				The repository for the Leaf code can be found <b><a href="https://github.com/SimonCB765/Leaf">here</a></b>.
 				<br><br>
 			</p>
 				<form id="downladForm" enctype="multipart/form-data" action="{{ url_for('code_and_PDB') }}" method="post">
-					<table align='center' border='0' cellpadding=5 style="font-size:1em;">
+					<table align="center" border="0" cellpadding=5 style="font-size:1em;">
 						<tr>
-							<td>What would you like to download?</td>
+							<td>What would you like to download:</td>
 							<td>
-								<select name="fileType">
-									<option value="Leaf" selected="selected">Leaf Source Code</option>
-									<option value="PDB">Local PDB Files</option>
-								</select>
+								<input type="radio" id="fileTypeLeaf" name="fileType" value="Leaf" onclick="disableElement(document.getElementById('pastedInfo')); hideElement(document.getElementById('chainsDiv'));" checked="checked"/>Leaf Source Code
+								<br>
+								<input type="radio" id="fileTypePDB" name="fileType" value="PDB" onclick="enableElement(document.getElementById('pastedInfo')); showElement(document.getElementById('chainsDiv'));"/>PDB Data Files
 							</td>
 						</tr>
 					</table>
+					<br>
+					<div id="chainsDiv" align="center" style="visibility: hidden;">
+						Enter the chains that you wish to download the data for in the box below:
+						<br>
+						<textarea id="pastedInfo" name="pastedInfo" rows="10" cols="50" maxlength="200000" disabled style="border: 3px solid #F7730E; background-color: #222222;"></textarea>
+					</div>
 					<p align="center"><input type="submit" value="Download" />
 				</form>
-				<br><br>
-			<p align="center">
-				The repository for the Leaf code can be found <b><a href="https://github.com/SimonCB765/Leaf">here</a></b>.
-			</p>
 		</div>
 	</body>
 </html>
