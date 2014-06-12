@@ -269,7 +269,7 @@ def culling():
         numberUniqueChains = len(representativeGroupings)
         if numberUniqueChains == 0:
             # If no valid chains were submitted.
-            return 'No valid chains were submitted. Please back up and try again.'
+            return 'None of the chain identifiers that you submitted were recognised as valid chains. Please back up and try again.'
         elif numberUniqueChains > MAXCHAINS:
             # If too many chains were submitted.
             return render_template('too_many_chains.html', max=MAXCHAINS, received=numberUniqueChains)
