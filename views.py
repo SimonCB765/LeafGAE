@@ -87,12 +87,12 @@ def contacts():
 
 def cull_upload_handler():
     """Process the information uploaded with the culled list."""
-    similarity = request.form['maxIdentity']
-    maxRes = request.form['maxRes']
-    maxRVal = request.form['maxRVal']
-    includeNonXray = 'N' if request.form['includeNonXray'] == 'no' else 'Y'
-    includeAlphaCarbon = 'N' if request.form['includeAlphaCarbon'] == 'no' else 'Y'
-    keyName = similarity + '_' + maxRes + '_' + maxRVal + '_' + includeNonXray + '_' + includeAlphaCarbon
+
+    similarity = '_' + request.form['maxIdentity']
+    maxRes = '_' + request.form['maxRes'] if request.form['includeAll'] == 'no' else '_100.0'
+    maxRVal = '_' + request.form['maxRVal']
+    includeAll = '_INCLNONXRAY_INCLCAONLY' if request.form['includeAll'] == 'yes' else ''
+    keyName = 'SeqIden' + similarity + '_Res' + maxRes + '_RVal' + maxRVal + includeAll
     type, params = cgi.parse_header(request.files['culledListFile'].headers['Content-Type'])
     blobKey = blobstore.BlobKey(params['blob-key'])
 
@@ -104,7 +104,7 @@ def cull_upload_handler():
 
     newCulledList = models.PreCulledList(id=keyName, details=keyName, listBlobKey=blobKey)
     newCulledList.put()
-    return 'List Uploaded<br>' + '<br>'.join(['Similarity - ' + similarity, 'MaxRes - ' + maxRes, 'MaxRVal - ' + maxRVal, 'NonXRay - ' + includeNonXray, 'Only Alpha Carbon - ' + includeAlphaCarbon])
+    return 'List Uploaded<br>' + '<br>'.join(['Similarity - ' + similarity, 'MaxRes - ' + maxRes, 'MaxRVal - ' + maxRVal, 'All - ' + includeAll])
 
 def cull_upload_form():
     """Render the culled list upload page."""
@@ -188,26 +188,26 @@ def help():
 
 def downloads():
     """Render the downloads page."""
+
     if request.method == 'POST':
-        similarity = request.form['maxIdentity']
-        maxRes = request.form['maxRes']
-        maxRVal = request.form['maxRVal']
-        includeNonXray = 'N' if request.form['includeNonXray'] == 'no' else 'Y'
-        includeAlphaCarbon = 'N' if request.form['includeAlphaCarbon'] == 'no' else 'Y'
-        keyName = similarity + '_' + maxRes + '_' + maxRVal + '_' + includeNonXray + '_' + includeAlphaCarbon
+        similarity = '_' + request.form['maxIdentity']
+        maxRes = '_' + request.form['maxRes'] if request.form['includeAll'] == 'no' else '_100.0'
+        maxRVal = '_' + request.form['maxRVal']
+        includeAll = '_INCLNONXRAY_INCLCAONLY' if request.form['includeAll'] == 'yes' else ''
+        keyName = 'SeqIden' + similarity + '_Res' + maxRes + '_RVal' + maxRVal + includeAll
         culledList = models.PreCulledList.get_by_id(keyName)
         blobKey = culledList.listBlobKey
         blobInfo = blobstore.BlobInfo.get(blobKey)
         response = Response()
         response.headers['X-AppEngine-BlobKey'] = blobKey
-        fileName = 'SeqIden-' + similarity + '_Res-' + maxRes + '_RVal-' + maxRVal + '_NonXray-' + includeNonXray + '_Alpha-' + includeAlphaCarbon
-        response.headers['Content-Disposition'] = 'attachment; filename={0}.gz'.format(fileName)
+        response.headers['Content-Disposition'] = 'attachment; filename={0}.gz'.format(keyName)
         return response
     elif request.method == 'GET':
         return render_template('downloads.html')
 
 def culling():
     """Render the culling entry page."""
+
     if request.method == 'POST':
         # Extract the user specified parameters.
         submittedChains = request.form['pastedInfo']
