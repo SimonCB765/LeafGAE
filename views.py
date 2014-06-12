@@ -200,7 +200,8 @@ def downloads():
         blobInfo = blobstore.BlobInfo.get(blobKey)
         response = Response()
         response.headers['X-AppEngine-BlobKey'] = blobKey
-        response.headers['Content-Disposition'] = 'attachment; filename=CulledProteins.gz'
+        fileName = 'SeqIden-' + similarity + '_Res-' + maxRes + '_RVal-' + maxRVal + '_NonXray-' + includeNonXray + '_Alpha-' + includeAlphaCarbon
+        response.headers['Content-Disposition'] = 'attachment; filename={0}.gz'.format(fileName)
         return response
     elif request.method == 'GET':
         return render_template('downloads.html')
